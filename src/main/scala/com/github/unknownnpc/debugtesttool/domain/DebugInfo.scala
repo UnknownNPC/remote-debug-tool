@@ -4,14 +4,17 @@ import com.github.unknownnpc.debugtesttool.action.TestAction
 
 sealed trait DebugInfo {
 
-  def testServerId: Id
+  def testServerId: TargetId
+
   def breakPointLine: BreakpointLine
+
   def testFieldName: TestFieldName
+
   def testAction: TestAction
 
 }
 
-case class JvmDebugInfo(testServerId: Id,
+case class JvmDebugInfo(testServerId: TargetId,
                         breakPointLine: BreakpointLine,
                         testFieldName: TestFieldName,
                         testAction: TestAction) extends DebugInfo

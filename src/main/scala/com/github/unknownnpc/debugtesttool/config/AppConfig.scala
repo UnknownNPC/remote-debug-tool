@@ -59,3 +59,5 @@ trait DebugTestToolConfig extends AppConfig {
     } yield ExecutionPair(target, targetIdWithDetails._2)
   }
 }
+
+object DebugTestToolConfig extends DebugTestToolConfig

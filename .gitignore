@@ -1,0 +1,9 @@
+# other files
+*.log
+
+# sbt specific
+target/
+
+# Idea IDE specific
+.idea/
+*.impl

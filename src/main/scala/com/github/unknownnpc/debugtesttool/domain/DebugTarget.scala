@@ -2,10 +2,12 @@ package com.github.unknownnpc.debugtesttool.domain
 
 sealed trait DebugTarget {
 
-  def id: Id
-  def address: Address
-  def port: Port
+  def id: TargetId
+
+  def address: TargetAddress
+
+  def port: TargetPort
 
 }
 
-case class JvmDebugTarget(id: Id, address: Address, port: Port) extends DebugTarget
+case class JvmDebugTarget(id: TargetId, address: TargetAddress, port: TargetPort) extends DebugTarget
