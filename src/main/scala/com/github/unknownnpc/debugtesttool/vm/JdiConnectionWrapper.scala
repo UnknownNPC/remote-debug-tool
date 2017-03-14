@@ -40,11 +40,18 @@ case class JdiConnectionWrapper(address: TargetAddress, port: TargetPort) extend
     try {
       breakpointRequest.enable()
       thread.suspend()
-      val frameVars = thread.frames().asScala.map(fr => safeFrameVariableSearch(fr, debugInfo.testFieldName)).head.getOrElse(
+      val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.testFieldName)).headOption.getOrElse(
         return buildFailResult(buildExceptionMessage("variable", debugInfo.testFieldName))
       )
-      val value = frameVars._1.getValue(frameVars._2)
-      Future.successful(value.toString)
+      val jdiValue = frameVars._1.getValue(frameVars._2)
+      Future.successful(
+        jdiValue match {
+          case bv: BooleanValue => bv.toString
+          case sr: StringReference => sr.toString
+          case ar: ArrayReference => ar.getValues.asScala.mkString
+          case _ => throw new Exception("Unable to handle test field type: " + jdiValue.`type`())
+        }
+      )
     } finally {
       thread.resume()
       breakpointRequest.disable()
@@ -53,7 +60,9 @@ case class JdiConnectionWrapper(address: TargetAddress, port: TargetPort) extend
   }
 
   private def safeFrameVariableSearch(f: StackFrame, t: TestFieldName): Option[(StackFrame, LocalVariable)] = {
-    failing(classOf[AbsentInformationException]) opt Tuple2(f, f.visibleVariableByName(t))
+    failing(classOf[AbsentInformationException]) {
+      Some(f, f.visibleVariableByName(t))
+    }
   }
 
   private def buildFailResult(message: String) = Future.failed(VmException(message))
