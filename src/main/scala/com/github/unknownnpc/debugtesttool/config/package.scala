@@ -10,6 +10,8 @@ package object config {
   val TEST_ACTION = "test-action"
   val TEST_SERVER_ID = "test-server-id"
   val BREAKPOINT_LINE = "breakpoint-line"
+  val BREAKPOINT_THREAD_NAME = "breakpoint-thread-name"
+  val BREAKPOINT_CLASS_NAME = "breakpoint-class-name"
   val TEST_FIELD_NAME = "test-field-name"
 
   val NOT_NULL_ACTION = "not null"

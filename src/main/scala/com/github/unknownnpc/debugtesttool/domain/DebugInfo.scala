@@ -8,6 +8,10 @@ sealed trait DebugInfo {
 
   def breakPointLine: BreakpointLine
 
+  def breakPointThreadName: BreakpointThreadName
+
+  def breakPointClassName: BreakpointClassName
+
   def testFieldName: TestFieldName
 
   def testAction: TestAction
@@ -16,5 +20,7 @@ sealed trait DebugInfo {
 
 case class JvmDebugInfo(testServerId: TargetId,
                         breakPointLine: BreakpointLine,
+                        breakPointThreadName: BreakpointThreadName = "main",
+                        breakPointClassName: BreakpointClassName,
                         testFieldName: TestFieldName,
                         testAction: TestAction) extends DebugInfo

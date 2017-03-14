@@ -36,6 +36,8 @@ trait DebugTestToolConfig extends AppConfig {
       JvmDebugInfo(
         row.getInt(TEST_SERVER_ID),
         row.getInt(BREAKPOINT_LINE),
+        row.getString(BREAKPOINT_THREAD_NAME),
+        row.getString(BREAKPOINT_CLASS_NAME),
         row.getString(TEST_FIELD_NAME),
         testAction
       )
