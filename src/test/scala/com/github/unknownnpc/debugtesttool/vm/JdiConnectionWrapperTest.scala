@@ -7,8 +7,8 @@ import org.scalatest.FlatSpec
 class JdiConnectionWrapperTest extends FlatSpec {
 
   "JdiConnectionWrapper" should "find values by DebugInfo" in {
-    val vmWrapper = JdiConnectionWrapper("localhost", 5005)
-    val info1: JvmDebugInfo = JvmDebugInfo(1, 53, "main","com.datalex.tdp.soap.test.run.StandaloneTestRunner", "MILLISECONDS_IN_SECOND", NotNull)
+    val vmWrapper = JdiConnectionWrapper("localhost", 8787)
+    val info1: JvmDebugInfo = JvmDebugInfo(1, 5, "main","A", "args", NotNull)
     var s = "blablabla"
     vmWrapper.executeCommand(info1)
   }
