@@ -1,3 +1,5 @@
+package com.github.unknownnpc.debugtesttool
+
 
 import akka.actor.{Props, _}
 import akka.pattern.ask
