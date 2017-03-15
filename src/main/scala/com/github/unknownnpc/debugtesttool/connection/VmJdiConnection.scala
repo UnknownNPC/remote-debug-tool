@@ -47,9 +47,9 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
           val jdiValue = frameVars._1.getValue(valueExistAndVisible)
           Future.successful(
             jdiValue match {
-              case bv: BooleanValue => bv.toString
               case sr: StringReference => sr.toString
               case ar: ArrayReference => ar.getValues.asScala.mkString
+              case pv: PrimitiveValue => pv.toString
               case _ => throw new Exception("Unable to handle test field type: " + jdiValue.`type`())
             }
           )
