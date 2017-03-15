@@ -1,6 +1,6 @@
 package com.github.unknownnpc.debugtesttool.connection
 
-import com.github.unknownnpc.debugtesttool.domain.{TestCase, CommandExecutionResult}
+import com.github.unknownnpc.debugtesttool.domain.{CommandExecutionResult, TestCase}
 
 import scala.concurrent.Future
 

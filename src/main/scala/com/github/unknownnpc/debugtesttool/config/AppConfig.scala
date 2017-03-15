@@ -1,15 +1,15 @@
 package com.github.unknownnpc.debugtesttool.config
 
+import java.time.{Duration => Jduration}
+
 import akka.util.Timeout
 import com.github.unknownnpc.debugtesttool.action.{NotNull, TestAction, UnknownAction}
 import com.github.unknownnpc.debugtesttool.domain._
 import com.typesafe.config.{Config, ConfigFactory}
 
-import scala.language.implicitConversions
-import java.time.{Duration => Jduration}
-
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.language.implicitConversions
 
 trait AppConfig {
 
@@ -24,6 +24,7 @@ trait AppConfig {
 trait DebugTestToolConfig extends AppConfig {
 
   private val configFile: Config = ConfigFactory.load()
+
   implicit def asFiniteDuration(d: Jduration): FiniteDuration = Duration.fromNanos(d.toNanos)
 
   override def systemConfig: SystemConfig = {
