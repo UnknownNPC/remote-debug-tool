@@ -16,7 +16,6 @@ class VmJdiConnectionTest extends WordSpec
   with BeforeAndAfter
   with JdkDebugProcessUtil {
 
-  lazy val logger = LoggerFactory.getLogger(getClass)
   var aClassProcess: Process = _
 
   before {
