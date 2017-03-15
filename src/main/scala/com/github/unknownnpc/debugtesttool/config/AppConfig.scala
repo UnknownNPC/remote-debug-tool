@@ -8,7 +8,9 @@ import scala.collection.JavaConverters._
 
 trait AppConfig {
 
-  def testTargets: List[ExecutionPair]
+  def testTargets: List[TestTarget]
+
+  def testInfos: List[TestInfo]
 
 }
 
@@ -16,13 +18,9 @@ trait DebugTestToolConfig extends AppConfig {
 
   private val configFile: Config = ConfigFactory.load()
 
-  override def testTargets: List[ExecutionPair] = {
-    executionPairFrom(readDebugTargets, readDebugDetails)
-  }
-
-  private def readDebugTargets: List[DebugTarget] = {
+  override def testTargets: List[TestTarget] = {
     configFile.getConfigList(DEBUG_TARGETS).asScala.map(row =>
-      JvmDebugTarget(
+      JvmTestTarget(
         row.getInt(ID),
         row.getString(ADDRESS),
         row.getInt(PORT)
@@ -30,15 +28,15 @@ trait DebugTestToolConfig extends AppConfig {
     ).toList
   }
 
-  private def readDebugDetails: List[DebugInfo] = {
-    configFile.getConfigList(DEBUG_DETAILS).asScala.map(row => {
+  override def testInfos: List[TestInfo] = {
+    configFile.getConfigList(DEBUG_INFOS).asScala.map(row => {
       val testAction: TestAction = testActionFrom(row.getString(TEST_ACTION))
-      JvmDebugInfo(
-        row.getInt(TEST_SERVER_ID),
+      JvmTestInfo(
+        row.getInt(SERVER_ID),
         row.getInt(BREAKPOINT_LINE),
         row.getString(BREAKPOINT_THREAD_NAME),
         row.getString(BREAKPOINT_CLASS_NAME),
-        row.getString(TEST_FIELD_NAME),
+        row.getString(FIELD_NAME),
         testAction
       )
     }
@@ -50,15 +48,6 @@ trait DebugTestToolConfig extends AppConfig {
       case NOT_NULL_ACTION => NotNull
       case _ => UnknownAction
     }
-  }
-
-  private def executionPairFrom(targets: List[DebugTarget],
-                                details: List[DebugInfo]): List[ExecutionPair] = {
-    for {
-      target <- targets
-      targetIdWithDetails <- details.groupBy(_.testServerId)
-      if target.id == targetIdWithDetails._1
-    } yield ExecutionPair(target, targetIdWithDetails._2)
   }
 }
 

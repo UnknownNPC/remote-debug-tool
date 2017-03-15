@@ -1,9 +1,9 @@
 package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging}
-import com.github.unknownnpc.debugtesttool.domain.{DebugInfo, DebugTarget}
+import com.github.unknownnpc.debugtesttool.domain.{TestInfo, TestTarget}
 
-class TransportActor(debugTarget: DebugTarget) extends Actor with ActorLogging {
+class TransportActor(debugTarget: TestTarget) extends Actor with ActorLogging {
 
   override def preStart() {
 
@@ -12,7 +12,7 @@ class TransportActor(debugTarget: DebugTarget) extends Actor with ActorLogging {
 
 
   override def receive = {
-    case e: DebugInfo =>
+    case e: TestInfo =>
     case _ =>
   }
 }

@@ -1,7 +1,7 @@
 package com.github.unknownnpc.debugtesttool.vm
 
 import com.github.unknownnpc.debugtesttool.action.NotNull
-import com.github.unknownnpc.debugtesttool.domain.JvmDebugInfo
+import com.github.unknownnpc.debugtesttool.domain.JvmTestInfo
 import org.scalatest.{Matchers, WordSpec}
 
 import scala.concurrent.duration.Duration
@@ -22,7 +22,7 @@ class JdiConnectionWrapperTest extends WordSpec with Matchers {
       **/
     "find values" in {
       val jdiConnection = JdiConnectionWrapper("localhost", 8787)
-      val jvmTask = JvmDebugInfo(1, 5, "main", "A", "args", NotNull)
+      val jvmTask = JvmTestInfo(1, 5, "main", "A", "args", NotNull)
       val variableValue = awaitFuture(jdiConnection.executeCommand(jvmTask))
       variableValue should equal("\"mahArgs\"")
     }

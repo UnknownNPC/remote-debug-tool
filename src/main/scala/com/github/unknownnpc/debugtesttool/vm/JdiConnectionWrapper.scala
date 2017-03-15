@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.control.Exception._
 
-case class JdiConnectionWrapper(address: TargetAddress, port: TargetPort) extends Transport {
+case class JdiConnectionWrapper(address: Address, port: Port) extends Transport {
 
   private val findErrorMessage = "Unable to find `%s` using next `%s`"
   private val vm: VirtualMachine = {
@@ -25,7 +25,7 @@ case class JdiConnectionWrapper(address: TargetAddress, port: TargetPort) extend
     socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams)
   }
 
-  override def executeCommand(debugInfo: DebugInfo): Future[String] = {
+  override def executeCommand(debugInfo: TestInfo): Future[String] = {
 
     val classType = vm.classesByName(debugInfo.breakPointClassName).asScala.headOption.getOrElse(
       return buildFailResult(buildExceptionMessage("class", debugInfo.breakPointClassName))
@@ -40,8 +40,8 @@ case class JdiConnectionWrapper(address: TargetAddress, port: TargetPort) extend
     try {
       breakpointRequest.enable()
       thread.suspend()
-      val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.testFieldName)).headOption.getOrElse(
-        return buildFailResult(buildExceptionMessage("variable", debugInfo.testFieldName))
+      val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.fieldName)).headOption.getOrElse(
+        return buildFailResult(buildExceptionMessage("variable", debugInfo.fieldName))
       )
       val jdiValue = frameVars._1.getValue(frameVars._2)
       Future.successful(
@@ -55,11 +55,11 @@ case class JdiConnectionWrapper(address: TargetAddress, port: TargetPort) extend
     } finally {
       thread.resume()
       breakpointRequest.disable()
-      buildFailResult(buildExceptionMessage("value", debugInfo.testFieldName))
+      buildFailResult(buildExceptionMessage("value", debugInfo.fieldName))
     }
   }
 
-  private def safeFrameVariableSearch(f: StackFrame, t: TestFieldName): Option[(StackFrame, LocalVariable)] = {
+  private def safeFrameVariableSearch(f: StackFrame, t: FieldName): Option[(StackFrame, LocalVariable)] = {
     failing(classOf[AbsentInformationException]) {
       Some(f, f.visibleVariableByName(t))
     }
