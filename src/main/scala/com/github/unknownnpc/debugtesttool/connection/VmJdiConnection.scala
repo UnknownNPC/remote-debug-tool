@@ -42,15 +42,19 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
       val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.fieldName)).headOption.getOrElse(
         return failException(exceptionMessage("variable", debugInfo.fieldName))
       )
-      val jdiValue = frameVars._1.getValue(frameVars._2)
-      Future.successful(
-        jdiValue match {
-          case bv: BooleanValue => bv.toString
-          case sr: StringReference => sr.toString
-          case ar: ArrayReference => ar.getValues.asScala.mkString
-          case _ => throw new Exception("Unable to handle test field type: " + jdiValue.`type`())
-        }
-      )
+      frameVars._2 match {
+        case Some(valueExistAndVisible) =>
+          val jdiValue = frameVars._1.getValue(valueExistAndVisible)
+          Future.successful(
+            jdiValue match {
+              case bv: BooleanValue => bv.toString
+              case sr: StringReference => sr.toString
+              case ar: ArrayReference => ar.getValues.asScala.mkString
+              case _ => throw new Exception("Unable to handle test field type: " + jdiValue.`type`())
+            }
+          )
+        case None => failException(exceptionMessage("value", debugInfo.fieldName))
+      }
     } finally {
       thread.resume()
       breakpointRequest.disable()
@@ -58,9 +62,9 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
     }
   }
 
-  private def safeFrameVariableSearch(f: StackFrame, t: FieldName): Option[(StackFrame, LocalVariable)] = {
+  private def safeFrameVariableSearch(f: StackFrame, t: FieldName): Option[(StackFrame, Option[LocalVariable])] = {
     failing(classOf[AbsentInformationException]) {
-      Some(f, f.visibleVariableByName(t))
+      Some(f, Option(f.visibleVariableByName(t)))
     }
   }
 
