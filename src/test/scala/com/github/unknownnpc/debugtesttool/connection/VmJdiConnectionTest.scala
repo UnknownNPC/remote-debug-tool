@@ -2,21 +2,25 @@ package com.github.unknownnpc.debugtesttool.connection
 
 import com.github.unknownnpc.debugtesttool.action.NotNull
 import com.github.unknownnpc.debugtesttool.domain.JvmTestCase
-import com.github.unknownnpc.debugtesttool.util.VmJdiTestUtil
+import com.github.unknownnpc.debugtesttool.util.JdkDebugProcessUtil
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
+import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import scala.reflect.io.File
 import scala.sys.process.Process
 
 
-class VmJdiConnectionTest extends WordSpec with Matchers with BeforeAndAfter with VmJdiTestUtil {
+class VmJdiConnectionTest extends WordSpec
+  with Matchers
+  with BeforeAndAfter
+  with JdkDebugProcessUtil {
 
+  lazy val logger = LoggerFactory.getLogger(getClass)
   var aClassProcess: Process = _
 
   before {
-    aClassProcess = runJdiJavaClass(File.separator + "AClass" + File.separator, "A", 8787, "passedArgs")
+    aClassProcess = runJavaClassInDebugMode("AClass", "A", 8787, "passedArgs")
   }
 
   after {
