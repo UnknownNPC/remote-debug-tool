@@ -5,7 +5,7 @@ import com.github.unknownnpc.debugtesttool.exception.VmException
 import com.sun.jdi._
 import com.sun.jdi.connect.AttachingConnector
 import com.sun.jdi.request.EventRequest
-import com.sun.tools.jdi.{SocketAttachingConnector, VirtualMachineManagerImpl}
+import com.sun.tools.jdi.SocketAttachingConnector
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -90,7 +90,7 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
   }
 
   private def findSocketConnector() = {
-    val vmm = VirtualMachineManagerImpl.virtualMachineManager()
+    val vmm = Bootstrap.virtualMachineManager()
     vmm.allConnectors().asScala.find(_.isInstanceOf[SocketAttachingConnector])
   }
 
