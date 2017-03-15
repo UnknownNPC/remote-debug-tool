@@ -1,12 +1,12 @@
 package com.github.unknownnpc.debugtesttool.connection
 
-import com.github.unknownnpc.debugtesttool.domain.{TestInfo, CommandExecutionResult}
+import com.github.unknownnpc.debugtesttool.domain.{TestCase, CommandExecutionResult}
 
 import scala.concurrent.Future
 
 trait Connection {
 
-  def executeCommand(debugInfo: TestInfo): Future[CommandExecutionResult]
+  def executeCommand(debugInfo: TestCase): Future[CommandExecutionResult]
 
 }
 

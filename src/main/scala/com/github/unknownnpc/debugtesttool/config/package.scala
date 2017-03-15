@@ -2,8 +2,11 @@ package com.github.unknownnpc.debugtesttool
 
 package object config {
 
-  val DEBUG_INFOS = "test-infos"
-  val DEBUG_TARGETS = "test-targets"
+  val SYSTEM_CONFIG = "system-config"
+  val REMOTE_VM_REQUEST_TIMEOUT = "remote-vm-request-timeout"
+
+  val TEST_CASES = "test-cases"
+  val TEST_TARGETS = "test-targets"
   val ID = "id"
   val ADDRESS = "address"
   val PORT = "port"

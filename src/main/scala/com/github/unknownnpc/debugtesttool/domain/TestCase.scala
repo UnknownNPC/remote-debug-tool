@@ -2,7 +2,7 @@ package com.github.unknownnpc.debugtesttool.domain
 
 import com.github.unknownnpc.debugtesttool.action.TestAction
 
-sealed trait TestInfo {
+sealed trait TestCase {
 
   def targetId: ID
 
@@ -18,9 +18,9 @@ sealed trait TestInfo {
 
 }
 
-case class JvmTestInfo(targetId: ID,
+case class JvmTestCase(targetId: ID,
                        breakPointLine: BreakpointLine,
                        breakPointThreadName: BreakpointThreadName = "main",
                        breakPointClassName: BreakpointClassName,
                        fieldName: FieldName,
-                       testAction: TestAction) extends TestInfo
+                       testAction: TestAction) extends TestCase

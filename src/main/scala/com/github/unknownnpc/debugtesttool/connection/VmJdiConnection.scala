@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.control.Exception._
 
-case class JdiVmConnection(address: Address, port: Port) extends Connection {
+case class VmJdiConnection(address: Address, port: Port) extends Connection {
 
   private val findErrorMessage = "Unable to find `%s` using next `%s`"
   private val vm: VirtualMachine = {
@@ -24,7 +24,7 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
     socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams)
   }
 
-  override def executeCommand(debugInfo: TestInfo): Future[String] = {
+  override def executeCommand(debugInfo: TestCase): Future[String] = {
 
     val classType = vm.classesByName(debugInfo.breakPointClassName).asScala.headOption.getOrElse(
       return failException(exceptionMessage("class", debugInfo.breakPointClassName))
