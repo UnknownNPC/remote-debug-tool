@@ -24,7 +24,7 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
     socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams)
   }
 
-  override def executeCommand(debugInfo: TestCase): Future[String] = {
+  override def executeCommand(debugInfo: TestCase): Future[CommandExecutionResult] = {
 
     val classType = vm.classesByName(debugInfo.breakPointClassName).asScala.headOption.getOrElse(
       return failException(exceptionMessage("class", debugInfo.breakPointClassName))
