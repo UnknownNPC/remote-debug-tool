@@ -1,9 +1,7 @@
-# other files
 *.log
+*.class
 
-# sbt specific
-target/
-
-# Idea IDE specific
-.idea/
-*.impl
+/.idea/
+/target/
+/project/project/
+/project/target/
