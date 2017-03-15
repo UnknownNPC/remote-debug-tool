@@ -1,5 +1,4 @@
-package com.github.unknownnpc.debugtesttool.vm
-
+package com.github.unknownnpc.debugtesttool.connection
 
 import com.github.unknownnpc.debugtesttool.domain._
 import com.github.unknownnpc.debugtesttool.exception.VmException
@@ -12,7 +11,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.util.control.Exception._
 
-case class JdiConnectionWrapper(address: Address, port: Port) extends Transport {
+case class JdiVmConnection(address: Address, port: Port) extends Connection {
 
   private val findErrorMessage = "Unable to find `%s` using next `%s`"
   private val vm: VirtualMachine = {
@@ -20,28 +19,28 @@ case class JdiConnectionWrapper(address: Address, port: Port) extends Transport 
       throw new Exception("Unable to find `dt_socket` connection")
     )
     val connectorParams = socketConnector.defaultArguments()
-    connectorParams.get("port").setValue(port.toString)
-    connectorParams.get("hostname").setValue(address)
+    connectorParams.get(CONNECTOR_PORT_KEY).setValue(port.toString)
+    connectorParams.get(CONNECTOR_HOSTNAME_KEY).setValue(address)
     socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams)
   }
 
   override def executeCommand(debugInfo: TestInfo): Future[String] = {
 
     val classType = vm.classesByName(debugInfo.breakPointClassName).asScala.headOption.getOrElse(
-      return buildFailResult(buildExceptionMessage("class", debugInfo.breakPointClassName))
+      return failException(exceptionMessage("class", debugInfo.breakPointClassName))
     )
     val location = findLocationBy(debugInfo.breakPointLine, classType).getOrElse(
-      return buildFailResult(buildExceptionMessage("location", debugInfo.breakPointLine.toString))
+      return failException(exceptionMessage("location", debugInfo.breakPointLine.toString))
     )
     val breakpointRequest = createBreakpointBy(location)
     val thread = findThreadBy(debugInfo.breakPointThreadName).getOrElse(
-      return buildFailResult(buildExceptionMessage("thread", debugInfo.breakPointThreadName))
+      return failException(exceptionMessage("thread", debugInfo.breakPointThreadName))
     )
     try {
       breakpointRequest.enable()
       thread.suspend()
       val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.fieldName)).headOption.getOrElse(
-        return buildFailResult(buildExceptionMessage("variable", debugInfo.fieldName))
+        return failException(exceptionMessage("variable", debugInfo.fieldName))
       )
       val jdiValue = frameVars._1.getValue(frameVars._2)
       Future.successful(
@@ -55,7 +54,7 @@ case class JdiConnectionWrapper(address: Address, port: Port) extends Transport 
     } finally {
       thread.resume()
       breakpointRequest.disable()
-      buildFailResult(buildExceptionMessage("value", debugInfo.fieldName))
+      failException(exceptionMessage("value", debugInfo.fieldName))
     }
   }
 
@@ -65,9 +64,9 @@ case class JdiConnectionWrapper(address: Address, port: Port) extends Transport 
     }
   }
 
-  private def buildFailResult(message: String) = Future.failed(VmException(message))
+  private def failException(message: String) = Future.failed(VmException(message))
 
-  private def buildExceptionMessage(value: String, property: String) = {
+  private def exceptionMessage(value: String, property: String) = {
     findErrorMessage.format(value, property)
   }
 
@@ -90,4 +89,5 @@ case class JdiConnectionWrapper(address: Address, port: Port) extends Transport 
     val vmm = VirtualMachineManagerImpl.virtualMachineManager()
     vmm.allConnectors().asScala.find(_.isInstanceOf[SocketAttachingConnector])
   }
+
 }

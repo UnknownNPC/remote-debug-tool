@@ -1,4 +1,4 @@
-package com.github.unknownnpc.debugtesttool.vm
+package com.github.unknownnpc.debugtesttool.connection
 
 import com.github.unknownnpc.debugtesttool.action.NotNull
 import com.github.unknownnpc.debugtesttool.domain.JvmTestInfo
@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
 
 
-class JdiConnectionWrapperTest extends WordSpec with Matchers {
+class JdiVmConnectionTest extends WordSpec with Matchers {
 
   "JdiConnectionWrapper" should {
 
@@ -21,7 +21,7 @@ class JdiConnectionWrapperTest extends WordSpec with Matchers {
       * TODO more exotic samples and `scala.sys.process` executor
       **/
     "find values" in {
-      val jdiConnection = JdiConnectionWrapper("localhost", 8787)
+      val jdiConnection = JdiVmConnection("localhost", 8787)
       val jvmTask = JvmTestInfo(1, 5, "main", "A", "args", NotNull)
       val variableValue = awaitFuture(jdiConnection.executeCommand(jvmTask))
       variableValue should equal("\"mahArgs\"")

@@ -10,7 +10,6 @@ package object domain {
   type BreakpointClassName = String
   type FieldName = String
 
-  type TransportCommand = String
-  type TransportExecutionResult = String
+  type CommandExecutionResult = String
 
 }
