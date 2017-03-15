@@ -23,10 +23,11 @@ trait JdkDebugProcessUtil {
       , s"$args"
     )
 
+    val processLogSupress = ProcessLogger(_ => Unit)
     Process(
       tuneCommandForMultiplatform(runJavaClassCommand),
       new File(absolutePathToResourceFolderBy("/jdi") + File.separator + s"$jdiTestFolderName")
-    ).run
+    ).run(processLogSupress)
   }
 
   private def absolutePathToResourceFolderBy(name: String) = {
