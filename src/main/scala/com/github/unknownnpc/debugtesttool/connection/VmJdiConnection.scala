@@ -16,7 +16,7 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
   private val findErrorMessage = "Unable to find `%s` using next `%s`"
   private val vm: VirtualMachine = {
     val socketConnector = findSocketConnector().getOrElse(
-      throw new Exception("Unable to find `dt_socket` connection")
+      throw VmException("Unable to find `dt_socket` connection")
     )
     val connectorParams = socketConnector.defaultArguments()
     connectorParams.get(CONNECTOR_PORT_KEY).setValue(port.toString)
@@ -50,7 +50,7 @@ case class VmJdiConnection(address: Address, port: Port) extends Connection {
               case sr: StringReference => sr.toString
               case ar: ArrayReference => ar.getValues.asScala.mkString
               case pv: PrimitiveValue => pv.toString
-              case _ => throw new Exception("Unable to handle test field type: " + jdiValue.`type`())
+              case _ => throw VmException("Unable to handle test field type: " + jdiValue.`type`())
             }
           )
         case None => failException(exceptionMessage("value", debugInfo.fieldName))

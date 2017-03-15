@@ -11,5 +11,6 @@ package object domain {
   type FieldName = String
 
   type CommandExecutionResult = String
+  type CommandFailReason = String
 
 }
