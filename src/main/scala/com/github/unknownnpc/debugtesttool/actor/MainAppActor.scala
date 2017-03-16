@@ -1,7 +1,6 @@
 package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
-import akka.util.Timeout
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
 import com.github.unknownnpc.debugtesttool.message.{JdiVmServiceStart, JdiVmServiceStop, MainAppActorStart, MainAppActorStop}
 
@@ -9,7 +8,6 @@ import scala.concurrent.ExecutionContext
 
 class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with ActorLogging {
 
-  private implicit val timeout: Timeout = DebugTestToolConfig.systemConfig.remoteVmRequestTimeout
   private implicit val dispatcher: ExecutionContext = actorSystem.dispatcher
 
   private var jdiVmServiceActor: ActorRef = _

@@ -11,10 +11,10 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 class JdiVmServiceActor(appConfig: AppConfig)(implicit actorSystem: ActorSystem,
-                                              implicit val timeout: Timeout,
                                               implicit val executionContext: ExecutionContext) extends Actor with ActorLogging {
 
-  val connectionGatewayActor = connectionGatewayActorRef(appConfig.testTargets)
+  private implicit val timeout: Timeout = appConfig.systemConfig.remoteVmRequestTimeout
+  private val connectionGatewayActor = connectionGatewayActorRef(appConfig.testTargets)
 
   override def receive = {
 
