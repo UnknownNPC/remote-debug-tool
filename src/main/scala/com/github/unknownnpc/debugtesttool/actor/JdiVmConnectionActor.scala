@@ -1,47 +1,63 @@
 package com.github.unknownnpc.debugtesttool.actor
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{ActorLogging, LoggingFSM, Props}
+import com.github.unknownnpc.debugtesttool.actor.JdiVmConnectionActor._
 import com.github.unknownnpc.debugtesttool.connection.{Connection, JdiVmConnection}
-import com.github.unknownnpc.debugtesttool.domain.TestTarget
-import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
+import com.github.unknownnpc.debugtesttool.domain._
+import com.github.unknownnpc.debugtesttool.message.JdiVmConnectionRequest
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
+import scala.concurrent.duration._
+import scala.language.postfixOps
 
-class JdiVmConnectionActor(testTarget: TestTarget)
-                          (implicit executionContext: ExecutionContext) extends Actor with ActorLogging {
+class JdiVmConnectionActor(testTarget: TestTarget) extends LoggingFSM[VmState, Data] with ActorLogging {
 
   private var jdiVmConnection: Connection = _
 
-  override def preStart() {
-    jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
+  startWith(VMNotInitialized, NoData)
+
+  when(VMNotInitialized) {
+    case Event(request: JdiVmConnectionRequest, _) =>
+      jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
+      goto(VMInitialized) using VmTask(request.testCase)
   }
 
-  override def receive = {
-
-    case request: JdiVmConnectionRequest =>
-      val parentActor = sender()
-      jdiVmConnection.executeCommand(request.testCase).onComplete {
-
-        case Success(result) =>
-          log.info(s"Connection received data from VM: [$result]")
-          parentActor ! JdiVmConnectionSuccess(result)
-
-        case Failure(t) =>
-          val errorMessage: String = s"Actor [${self.path}] failed test case execution for next case [${request.testCase}]"
-          log.error(errorMessage)
-          parentActor ! JdiVmConnectionFailed(errorMessage)
-
-      }
-
-    case _ =>
-      val errorMessage = "Unknown incoming message"
-      log.warning(errorMessage)
+  when(VMInitialized) {
+    case Event(_, VmTask(data)) =>
+      jdiVmConnection.lockVm()
+      jdiVmConnection.setBreakpoint(data.breakPointLine)
+      jdiVmConnection.unlockVm()
+      goto(VmLocked) using VmTask(data)
   }
 
+  //idle time from test case
+  when(VmLocked, stateTimeout = 20 seconds) {
+    case Event(StateTimeout, VmTask(data)) =>
+      sender() ! jdiVmConnection.findValue(data)
+      jdiVmConnection.removeBreakpoint()
+      goto(Idle) using NoData
+  }
+
+  when(Idle) {
+    case Event(request: JdiVmConnectionRequest, _) =>
+      goto(VMInitialized) using VmTask(request.testCase)
+  }
+
+  initialize()
 }
 
 object JdiVmConnectionActor {
   def props(testTarget: TestTarget)(implicit executionContext: ExecutionContext) =
     Props(new JdiVmConnectionActor(testTarget))
+
+  trait Data
+  case object NoData extends Data
+  case class VmTask(testCase: TestCase) extends Data
+
+  trait VmState
+  case object VMNotInitialized extends VmState
+  case object VMInitialized extends VmState
+  case object VmLocked extends VmState
+  case object Idle extends VmState
+
 }

@@ -1,12 +1,19 @@
 package com.github.unknownnpc.debugtesttool.connection
 
-import com.github.unknownnpc.debugtesttool.domain.{CommandExecutionResult, TestCase}
+import com.github.unknownnpc.debugtesttool.domain.{BreakpointLine, CommandExecutionResult, TestCase}
 
 import scala.concurrent.Future
 
 trait Connection {
 
-  def executeCommand(debugInfo: TestCase): Future[CommandExecutionResult]
+  def lockVm()
+
+  def unlockVm()
+
+  def setBreakpoint(line: BreakpointLine)
+
+  def removeBreakpoint()
+
+  def findValue(debugInfo: TestCase): Future[CommandExecutionResult]
 
 }
-
