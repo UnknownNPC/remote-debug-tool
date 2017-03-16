@@ -1,54 +1,44 @@
 package com.github.unknownnpc.debugtesttool
 
-import scala.util.{Failure, Success}
 import akka.actor.{Props, _}
-import akka.pattern.ask
-import akka.util.Timeout
-import com.github.unknownnpc.debugtesttool.actor.JdiVmGatewayActor
-import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
-import com.github.unknownnpc.debugtesttool.domain.TestTarget
-import com.github.unknownnpc.debugtesttool.message.{ConnectionGatewayFailed, ConnectionGatewayPayload, ConnectionGatewaySuccess, GatewayMessage}
+import com.github.unknownnpc.debugtesttool.actor.MainAppActor
+import com.github.unknownnpc.debugtesttool.message.{MainAppActorStart, MainAppActorStop}
 import org.slf4j.LoggerFactory
 
-import scala.io.StdIn
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 object Main {
 
   private val log = LoggerFactory.getLogger(this.getClass)
   private implicit val actorSystem = ActorSystem("debug-test-tool")
-  private implicit val timeout: Timeout = DebugTestToolConfig.systemConfig.remoteVmRequestTimeout
-  private implicit val context = actorSystem.dispatcher
 
   def main(args: Array[String]) {
 
-    val connectionGatewayActor = connectionGatewayActorRef(DebugTestToolConfig.testTargets)
+    val mainActorRef = createMainAppActorRef()
 
-    DebugTestToolConfig.testCases.foreach { testInfo =>
+    mainActorRef ! MainAppActorStart
 
-      (connectionGatewayActor ? ConnectionGatewayPayload(testInfo)).onComplete {
-        case Success(futureResult) => futureResult match {
-          case ConnectionGatewaySuccess(resultPayload) => log.info(s"Received next payload [$resultPayload] using next [$testInfo]")
-          case ConnectionGatewayFailed(reason) => log.info(s"Gateway returned failed result  [$reason]")
-          case _ => log.error(s"Received unknown message from: [${connectionGatewayActor.toString()}]")
+    Runtime.getRuntime.addShutdownHook(
+      new Thread() {
+        override def run() {
+
+          log.warn("Trying to terminate correctly")
+          mainActorRef ! MainAppActorStop
+
+          Await.ready(
+            actorSystem.whenTerminated,
+            atMost = 15 seconds
+          )
+          log.warn("Actors successfully stopped")
         }
-
-        case Failure(t) =>
-          log.error(s"Actor failed test case execution: [${connectionGatewayActor.path}]")
       }
-    }
-
-    userMessage()
+    )
   }
 
-  private def userMessage() = {
-    println("ENTER to terminate")
-    StdIn.readLine()
-    actorSystem.terminate()
-  }
-
-  private def connectionGatewayActorRef(testTargets: List[TestTarget]) = {
-    actorSystem.actorOf(Props(new JdiVmGatewayActor(testTargets)), name = "vm-jdi-connections-gateway")
+  private def createMainAppActorRef() = {
+    actorSystem.actorOf(Props(new MainAppActor()), name = "main-app-actor")
   }
 
 }

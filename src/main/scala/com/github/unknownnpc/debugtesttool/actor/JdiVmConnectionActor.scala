@@ -1,9 +1,9 @@
 package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging}
-import com.github.unknownnpc.debugtesttool.connection.{Connection, VmJdiConnection}
-import com.github.unknownnpc.debugtesttool.domain.{TestCase, TestTarget}
-import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionSuccess}
+import com.github.unknownnpc.debugtesttool.connection.{Connection, JdiVmConnection}
+import com.github.unknownnpc.debugtesttool.domain.TestTarget
+import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
@@ -12,22 +12,25 @@ class JdiVmConnectionActor(testTarget: TestTarget)
                           (implicit executionContext: ExecutionContext)
   extends Actor with ActorLogging {
 
-  var jdiVmConnection: Connection = _
+  private var jdiVmConnection: Connection = _
 
   override def preStart() {
-    jdiVmConnection = VmJdiConnection(testTarget.address, testTarget.port)
+    jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
   }
 
   override def receive = {
 
-    case tc: TestCase =>
-      jdiVmConnection.executeCommand(tc).onComplete {
+    case request: JdiVmConnectionRequest =>
+
+      jdiVmConnection.executeCommand(request.testCase).onComplete {
 
         case Success(result) => sender ! JdiVmConnectionSuccess(result)
 
         case Failure(t) =>
-          log.error(s"Actor failed test case execution: [${self.path}]")
-          sender ! JdiVmConnectionFailed(t.getMessage)
+          val errorMessage: String = s"Actor [${self.path}] failed test case execution for next case [${request.testCase}]"
+          log.error(errorMessage)
+          sender ! JdiVmConnectionFailed(errorMessage)
+
       }
 
     case _ =>

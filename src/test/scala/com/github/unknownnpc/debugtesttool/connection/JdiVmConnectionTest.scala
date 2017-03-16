@@ -11,7 +11,7 @@ import scala.concurrent.{Await, Future}
 import scala.sys.process.Process
 
 
-class VmJdiConnectionTest extends WordSpec
+class JdiVmConnectionTest extends WordSpec
   with Matchers
   with BeforeAndAfter
   with JdkDebugProcessUtil {
@@ -32,14 +32,14 @@ class VmJdiConnectionTest extends WordSpec
   "VmJdiConnection" should {
 
     "find main method `args` values in the A.class test file" in {
-      val jdiConnection = VmJdiConnection("localhost", 8787)
+      val jdiConnection = JdiVmConnection("localhost", 8787)
       val jvmTask = JvmTestCase(1, 5, "main", "A", "args", NotNull)
       val variableValue = awaitFuture(jdiConnection.executeCommand(jvmTask))
       variableValue should equal("\"passedArgs\"")
     }
 
     "find variable values in the B.class test file by lines" in {
-      val jdiConnection = VmJdiConnection("localhost", 8788)
+      val jdiConnection = JdiVmConnection("localhost", 8788)
       val jvmTaskForBValue = JvmTestCase(1, 4, "main", "B", "b", NotNull)
       val jvmTaskForCValue = JvmTestCase(1, 5, "main", "B", "c", NotNull)
 
