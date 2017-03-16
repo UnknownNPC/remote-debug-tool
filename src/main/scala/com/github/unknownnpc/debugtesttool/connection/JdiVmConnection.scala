@@ -54,9 +54,6 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
       throw VmException("field")
     )
     try {
-      val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.fieldName)).headOption.getOrElse(
-        throw VmException("fieldName")
-      )
       frameVars._2 match {
         case Some(valueExistAndVisible) =>
           val jdiValue = frameVars._1.getValue(valueExistAndVisible)
