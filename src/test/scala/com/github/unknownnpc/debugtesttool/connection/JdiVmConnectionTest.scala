@@ -47,7 +47,7 @@ class JdiVmConnectionTest extends WordSpec
       val cValue = awaitFuture(jdiConnection.executeCommand(jvmTaskForCValue))
 
       bValue should equal("47")
-      cValue should equal("\"stringSample\"")
+      cValue should equal("stringSample")
     }
   }
 
