@@ -1,6 +1,6 @@
 package com.github.unknownnpc.debugtesttool.actor
 
-import akka.actor.{Actor, ActorLogging, ActorSystem, Kill, Props}
+import akka.actor.{Actor, ActorLogging, Props}
 import akka.pattern._
 import akka.util.Timeout
 import com.github.unknownnpc.debugtesttool.config.AppConfig
@@ -10,8 +10,10 @@ import com.github.unknownnpc.debugtesttool.message._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class JdiVmServiceActor(appConfig: AppConfig)(implicit actorSystem: ActorSystem,
-                                              implicit val executionContext: ExecutionContext) extends Actor with ActorLogging {
+/*
+  Context for onComplete()
+ */
+class JdiVmServiceActor(appConfig: AppConfig)(implicit val executionContext: ExecutionContext) extends Actor with ActorLogging {
 
   private implicit val timeout: Timeout = appConfig.systemConfig.remoteVmRequestTimeout
   private val connectionGatewayActor = connectionGatewayActorRef(appConfig.testTargets)
@@ -39,11 +41,15 @@ class JdiVmServiceActor(appConfig: AppConfig)(implicit actorSystem: ActorSystem,
 
     case JdiVmServiceStop =>
       log.warning("VM resources cleaning")
-      connectionGatewayActor ! Kill
 
   }
 
   private def connectionGatewayActorRef(testTargets: List[TestTarget]) = {
-    actorSystem.actorOf(Props(new JdiVmGatewayActor(testTargets)), name = "jdi-vm-gateway")
+    context.actorOf(JdiVmGatewayActor.props(testTargets), "jdi-vm-gateway")
   }
+}
+
+object JdiVmServiceActor {
+  def props(appConfig: AppConfig)(implicit executionContext: ExecutionContext) =
+    Props(new JdiVmServiceActor(appConfig))
 }

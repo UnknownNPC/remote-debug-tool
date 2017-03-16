@@ -1,6 +1,6 @@
 package com.github.unknownnpc.debugtesttool.actor
 
-import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem}
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
 import com.github.unknownnpc.debugtesttool.message.{JdiVmServiceStart, JdiVmServiceStop, MainAppActorStart, MainAppActorStop}
 
@@ -28,6 +28,8 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
 
     case MainAppActorStop =>
       stopServices()
+      context.stop(self)
+      context.system.terminate()
 
   }
 
@@ -41,7 +43,7 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
   }
 
   private def createJdiVmServiceActor() = {
-    actorSystem.actorOf(Props(new JdiVmServiceActor(DebugTestToolConfig)), name = "jdi-vm-service")
+    context.actorOf(JdiVmServiceActor.props(DebugTestToolConfig), "jdi-vm-service")
   }
 
 }

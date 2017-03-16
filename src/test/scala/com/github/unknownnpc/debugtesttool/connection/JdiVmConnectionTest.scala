@@ -4,7 +4,6 @@ import com.github.unknownnpc.debugtesttool.action.NotNull
 import com.github.unknownnpc.debugtesttool.domain.JvmTestCase
 import com.github.unknownnpc.debugtesttool.util.JdkDebugProcessUtil
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpec}
-import org.slf4j.LoggerFactory
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
