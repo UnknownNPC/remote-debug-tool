@@ -25,7 +25,7 @@ class JdiVmConnectionActor(testTarget: TestTarget) extends LoggingFSM[VmState, D
   when(VMInitialized) {
     case Event(_, VmTask(data)) =>
       jdiVmConnection.lockVm()
-      jdiVmConnection.setBreakpoint(data.breakPointLine)
+      jdiVmConnection.setBreakpoint(data.breakPointLine, data.breakPointThreadName)
       jdiVmConnection.unlockVm()
       goto(VmLocked) using VmTask(data)
   }
@@ -47,6 +47,7 @@ class JdiVmConnectionActor(testTarget: TestTarget) extends LoggingFSM[VmState, D
 }
 
 object JdiVmConnectionActor {
+
   def props(testTarget: TestTarget)(implicit executionContext: ExecutionContext) =
     Props(new JdiVmConnectionActor(testTarget))
 
