@@ -14,6 +14,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
 
   override def preStart() {
     jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
+    jdiVmConnection.lockVm()
   }
 
   override def receive = {
@@ -35,7 +36,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
           log.error(errorMessage)
           senderActor ! JdiVmConnectionFailed(errorMessage)
       }
-      jdiVmConnection.removeBreakpoint()
+      resetVM()
 
     case _ =>
       val errorMessage = "Unknown incoming message"
@@ -43,14 +44,18 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
 
   }
 
-  def waitForBreakpoint(breakpointWaiting: BreakpointWaiting) = {
+  private def waitForBreakpoint(breakpointWaiting: BreakpointWaiting) = {
     log.info("Implement sleep")
   }
 
-  def prepareVmForSearch(testCase: TestCase) {
-    jdiVmConnection.lockVm()
+  private def prepareVmForSearch(testCase: TestCase) {
     jdiVmConnection.setBreakpoint(testCase.breakPointLine, testCase.breakPointClassName)
     jdiVmConnection.unlockVm()
+  }
+
+  private def resetVM() = {
+    jdiVmConnection.removeBreakpoint()
+    jdiVmConnection.lockVm()
   }
 
 }
