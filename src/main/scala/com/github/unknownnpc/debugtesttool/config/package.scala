@@ -14,6 +14,7 @@ package object config {
   val SERVER_ID = "server-id"
   val BREAKPOINT_LINE = "breakpoint-line"
   val BREAKPOINT_THREAD_NAME = "breakpoint-thread-name"
+  val BREAKPOINT_WAITING = "breakpoint-waiting"
   val BREAKPOINT_CLASS_NAME = "breakpoint-class-name"
   val FIELD_NAME = "field-name"
 

@@ -12,6 +12,8 @@ sealed trait TestCase {
 
   def breakPointClassName: BreakpointClassName
 
+  def breakpointWaiting: BreakpointWaiting
+
   def fieldName: FieldName
 
   def testAction: TestAction
@@ -22,5 +24,6 @@ case class JvmTestCase(targetId: ID,
                        breakPointLine: BreakpointLine,
                        breakPointThreadName: BreakpointThreadName = "main",
                        breakPointClassName: BreakpointClassName,
+                       breakpointWaiting: BreakpointWaiting,
                        fieldName: FieldName,
                        testAction: TestAction) extends TestCase

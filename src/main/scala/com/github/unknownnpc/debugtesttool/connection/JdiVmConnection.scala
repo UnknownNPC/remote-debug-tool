@@ -8,7 +8,7 @@ import com.sun.jdi.request.{BreakpointRequest, EventRequest}
 import com.sun.tools.jdi.SocketAttachingConnector
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
+import scala.util.Try
 import scala.util.control.Exception._
 
 case class JdiVmConnection(address: Address, port: Port) extends Connection {
@@ -45,32 +45,34 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
     breakpoint.disable()
   }
 
-  override def findValue(debugInfo: TestCase): Future[CommandExecutionResult] = {
-    val thread = findThreadBy(debugInfo.breakPointThreadName).getOrElse(
-      throw VmException("thread")
+  override def findValue(breakPointThreadName: BreakpointThreadName, fieldName: FieldName) = {
+
+    val thread = findThreadBy(breakPointThreadName).getOrElse(
+      throw VmException(formatErrorMessage("thread", breakPointThreadName))
     )
     thread.suspend()
-    val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, debugInfo.fieldName)).headOption.getOrElse(
-      throw VmException("field")
+    val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, fieldName)).headOption.getOrElse(
+      throw VmException(formatErrorMessage("frame with field", fieldName))
     )
-    try {
+
+    Try {
       frameVars._2 match {
         case Some(valueExistAndVisible) =>
           val jdiValue = frameVars._1.getValue(valueExistAndVisible)
-          Future.successful(
-            jdiValue match {
-              case sr: StringReference => sr.value()
-              case ar: ArrayReference => ar.getValues.asScala.mkString
-              case pv: PrimitiveValue => pv.toString
-              case _ => throw VmException("Unable to handle test field type: " + jdiValue.`type`())
-            }
-          )
-        case None => throw VmException("value")
+          jdiValue match {
+            case sr: StringReference => sr.value()
+            case ar: ArrayReference => ar.getValues.asScala.mkString
+            case pv: PrimitiveValue => pv.toString
+            case _ => throw VmException("Unable to handle test field type: " + jdiValue.`type`())
+          }
+        case None => throw VmException(formatErrorMessage("value in frames", fieldName))
       }
-    } finally {
-      thread.resume()
+    } recover {
+      case VmException(e) => thread.resume(); e
     }
+
   }
+
 
   private def safeFrameVariableSearch(f: StackFrame, t: FieldName): Option[(StackFrame, Option[LocalVariable])] = {
     failing(classOf[AbsentInformationException]) {
@@ -78,10 +80,8 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
     }
   }
 
-  private def failException(message: String) = Future.failed(VmException(message))
-
-  private def exceptionMessage(value: String, property: String) = {
-    findErrorMessage.format(value, property)
+  private def formatErrorMessage(unableToFind: String, using: String) = {
+    findErrorMessage.format(unableToFind, using)
   }
 
   private def findLocationBy(breakpointLine: BreakpointLine, className: ReferenceType) = {

@@ -1,8 +1,8 @@
 package com.github.unknownnpc.debugtesttool.connection
 
-import com.github.unknownnpc.debugtesttool.domain.{BreakpointClassName, BreakpointLine, CommandExecutionResult, TestCase}
+import com.github.unknownnpc.debugtesttool.domain._
 
-import scala.concurrent.Future
+import scala.util.Try
 
 trait Connection {
 
@@ -14,6 +14,6 @@ trait Connection {
 
   def removeBreakpoint()
 
-  def findValue(debugInfo: TestCase): Future[CommandExecutionResult]
+  def findValue(breakPointThreadName: BreakpointThreadName, fieldName: FieldName): Try[CommandExecutionResult]
 
 }

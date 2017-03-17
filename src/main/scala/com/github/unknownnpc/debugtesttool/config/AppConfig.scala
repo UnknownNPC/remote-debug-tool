@@ -52,6 +52,7 @@ trait DebugTestToolConfig extends AppConfig {
         row.getInt(BREAKPOINT_LINE),
         row.getString(BREAKPOINT_THREAD_NAME),
         row.getString(BREAKPOINT_CLASS_NAME),
+        row.getDuration(BREAKPOINT_WAITING),
         row.getString(FIELD_NAME),
         testAction
       )
