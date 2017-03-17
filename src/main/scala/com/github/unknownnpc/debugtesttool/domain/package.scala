@@ -1,5 +1,7 @@
 package com.github.unknownnpc.debugtesttool
 
+import scala.concurrent.duration.FiniteDuration
+
 package object domain {
 
   type ID = Long
@@ -9,6 +11,7 @@ package object domain {
   type BreakpointThreadName = String
   type BreakpointClassName = String
   type FieldName = String
+  type BreakpointWaiting = FiniteDuration
 
   type CommandExecutionResult = String
   type CommandFailReason = String

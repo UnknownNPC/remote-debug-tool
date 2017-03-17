@@ -2,14 +2,13 @@ package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, Props}
 import com.github.unknownnpc.debugtesttool.connection.{Connection, JdiVmConnection}
-import com.github.unknownnpc.debugtesttool.domain.TestTarget
+import com.github.unknownnpc.debugtesttool.domain.{BreakpointWaiting, TestCase, TestTarget}
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class JdiVmConnectionActor(testTarget: TestTarget)
-                          (implicit executionContext: ExecutionContext) extends Actor with ActorLogging {
+class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: ExecutionContext) extends Actor with ActorLogging {
 
   private var jdiVmConnection: Connection = _
 
@@ -20,23 +19,38 @@ class JdiVmConnectionActor(testTarget: TestTarget)
   override def receive = {
 
     case request: JdiVmConnectionRequest =>
-      val parentActor = sender()
-      jdiVmConnection.executeCommand(request.testCase).onComplete {
+      val senderActor = sender()
+      val testCase = request.testCase
+      prepareVmForSearch(testCase)
+      waitForBreakpoint(request.testCase.breakpointWaiting)
+      val possibleResult = jdiVmConnection.findValue(testCase.breakPointThreadName, testCase.fieldName)
+      possibleResult match {
 
         case Success(result) =>
           log.info(s"Connection received data from VM: [$result]")
-          parentActor ! JdiVmConnectionSuccess(result)
+          senderActor ! JdiVmConnectionSuccess(result)
 
         case Failure(t) =>
-          val errorMessage: String = s"Actor [${self.path}] failed test case execution for next case [${request.testCase}]"
+          val errorMessage: String = s"Failed test case execution for next case [${request.testCase}]"
           log.error(errorMessage)
-          parentActor ! JdiVmConnectionFailed(errorMessage)
-
+          senderActor ! JdiVmConnectionFailed(errorMessage)
       }
+      jdiVmConnection.removeBreakpoint()
 
     case _ =>
       val errorMessage = "Unknown incoming message"
       log.warning(errorMessage)
+
+  }
+
+  def waitForBreakpoint(breakpointWaiting: BreakpointWaiting) = {
+    log.info("Implement sleep")
+  }
+
+  def prepareVmForSearch(testCase: TestCase) {
+    jdiVmConnection.lockVm()
+    jdiVmConnection.setBreakpoint(testCase.breakPointLine, testCase.breakPointClassName)
+    jdiVmConnection.unlockVm()
   }
 
 }
