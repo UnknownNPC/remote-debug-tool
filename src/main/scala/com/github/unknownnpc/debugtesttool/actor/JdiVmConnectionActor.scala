@@ -1,6 +1,7 @@
 package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, Props}
+import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
 import com.github.unknownnpc.debugtesttool.connection.{Connection, JdiVmConnection}
 import com.github.unknownnpc.debugtesttool.domain.{BreakpointWaiting, TestCase, TestTarget}
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
@@ -13,8 +14,16 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
   private var jdiVmConnection: Connection = _
 
   override def preStart() {
+    //for jvm unlock
+    context.setReceiveTimeout(DebugTestToolConfig.systemConfig.remoteVmRequestTimeout.duration)
     jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
     jdiVmConnection.lockVm()
+  }
+
+
+  @scala.throws[Exception](classOf[Exception])
+  override def postStop() {
+    jdiVmConnection.unlockVm()
   }
 
   override def receive = {
