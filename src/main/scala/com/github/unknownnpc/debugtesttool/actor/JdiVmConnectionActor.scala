@@ -1,9 +1,9 @@
 package com.github.unknownnpc.debugtesttool.actor
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{Actor, ActorLogging, Props, ReceiveTimeout}
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
 import com.github.unknownnpc.debugtesttool.connection.{Connection, JdiVmConnection}
-import com.github.unknownnpc.debugtesttool.domain.{BreakpointWaiting, TestCase, TestTarget}
+import com.github.unknownnpc.debugtesttool.domain.{TestCase, TestTarget}
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
@@ -14,17 +14,11 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
   private var jdiVmConnection: Connection = _
 
   override def preStart() {
-    //for jvm unlock
-    context.setReceiveTimeout(DebugTestToolConfig.systemConfig.remoteVmRequestTimeout.duration)
+    context.setReceiveTimeout(DebugTestToolConfig.systemConfig.removeVmConnectionIdleTimeout.duration)
     jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
     jdiVmConnection.lockVm()
   }
 
-
-  @scala.throws[Exception](classOf[Exception])
-  override def postStop() {
-    jdiVmConnection.unlockVm()
-  }
 
   override def receive = {
 
@@ -32,8 +26,8 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       val senderActor = sender()
       val testCase = request.testCase
       prepareVmForSearch(testCase)
-      waitForBreakpoint(request.testCase.breakpointWaiting)
       val possibleResult = jdiVmConnection.findValue(testCase.breakPointThreadName, testCase.fieldName)
+
       possibleResult match {
 
         case Success(result) =>
@@ -47,14 +41,15 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       }
       resetVM()
 
+    case ReceiveTimeout =>
+      log.info("Incoming messages idle. Unlock VM. Turn off connection actor")
+      jdiVmConnection.unlockVm()
+      context.stop(self)
+
     case _ =>
       val errorMessage = "Unknown incoming message"
       log.warning(errorMessage)
 
-  }
-
-  private def waitForBreakpoint(breakpointWaiting: BreakpointWaiting) = {
-    log.info("Implement sleep")
   }
 
   private def prepareVmForSearch(testCase: TestCase) {

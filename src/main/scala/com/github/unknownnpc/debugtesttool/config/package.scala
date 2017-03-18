@@ -4,6 +4,7 @@ package object config {
 
   val SYSTEM_CONFIG = "system-config"
   val REMOTE_VM_REQUEST_TIMEOUT = "remote-vm-request-timeout"
+  val REMOTE_VM_CONNECTION_IDLE_TIMEOUT = "remote-vm-connection-idle-timeout"
 
   val TEST_CASES = "test-cases"
   val TEST_TARGETS = "test-targets"

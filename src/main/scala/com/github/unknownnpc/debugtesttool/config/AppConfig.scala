@@ -30,7 +30,8 @@ trait DebugTestToolConfig extends AppConfig {
   override def systemConfig: SystemConfig = {
     val systemConfig = configFile.getConfig(SYSTEM_CONFIG)
     SystemConfig(
-      Timeout.durationToTimeout(systemConfig.getDuration(REMOTE_VM_REQUEST_TIMEOUT))
+      Timeout.durationToTimeout(systemConfig.getDuration(REMOTE_VM_REQUEST_TIMEOUT)),
+      Timeout.durationToTimeout(systemConfig.getDuration(REMOTE_VM_CONNECTION_IDLE_TIMEOUT))
     )
   }
 
