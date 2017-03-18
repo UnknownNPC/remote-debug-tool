@@ -4,18 +4,20 @@ import com.github.unknownnpc.debugtesttool.domain._
 import com.github.unknownnpc.debugtesttool.exception.VmException
 import com.sun.jdi._
 import com.sun.jdi.connect.AttachingConnector
+import com.sun.jdi.event.{BreakpointEvent, EventSet}
 import com.sun.jdi.request.{BreakpointRequest, EventRequest}
 import com.sun.tools.jdi.SocketAttachingConnector
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
-import scala.util.Try
-import scala.util.control.Exception._
 
-case class JdiVmConnection(address: Address, port: Port) extends Connection {
+case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
+
+  private val log = LoggerFactory.getLogger(this.getClass)
   private val findErrorMessage = "Unable to find `%s` using next `%s`"
-
   private var breakpoint: BreakpointRequest = _
+
   private val vm: VirtualMachine = {
     val socketConnector = findSocketConnector().getOrElse(
       throw VmException("Unable to find `dt_socket` connection")
@@ -35,8 +37,8 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
   }
 
   override def setBreakpoint(line: BreakpointLine, className: BreakpointClassName) = {
-    val classType = vm.classesByName(className).asScala.headOption.getOrElse(throw VmException("class"))
-    val location = findLocationBy(line, classType).getOrElse(throw VmException("location"))
+    val classRef = vm.classesByName(className).asScala.headOption.getOrElse(throw VmException("class"))
+    val location = findLocationBy(line, classRef).getOrElse(throw VmException("location"))
     breakpoint = createBreakpointBy(location)
     breakpoint.enable()
   }
@@ -45,47 +47,59 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
     breakpoint.disable()
   }
 
-  override def findValue(breakPointThreadName: BreakpointThreadName, fieldName: FieldName) = {
+  override def findValue(breakPointThreadName: BreakpointThreadName, fieldName: FieldName, breakpointWaiting: BreakpointWaiting) = {
 
-    val thread = findThreadBy(breakPointThreadName).getOrElse(
-      throw VmException(formatErrorMessage("thread", breakPointThreadName))
-    )
-    thread.suspend()
-    val frameVars = thread.frames().asScala.flatMap(fr => safeFrameVariableSearch(fr, fieldName)).headOption.getOrElse(
-      throw VmException(formatErrorMessage("frame with field", fieldName))
-    )
+    val evtQueue = vm.eventQueue()
 
-    Try {
-      frameVars._2 match {
-        case Some(valueExistAndVisible) =>
-          val jdiValue = frameVars._1.getValue(valueExistAndVisible)
-          jdiValue match {
-            case sr: StringReference => sr.value()
-            case ar: ArrayReference => ar.getValues.asScala.mkString
-            case pv: PrimitiveValue => pv.toString
-            case _ => throw VmException("Unable to handle test field type: " + jdiValue.`type`())
+    log.debug(s"Variable search process started. Timeout: [${breakpointWaiting.toSeconds}] seconds")
+    val optionalTriggeredEventSet = Option(evtQueue.remove(breakpointWaiting.toMillis))
+
+    val searchResult = optionalTriggeredEventSet match {
+      case Some(triggeredEventSet) =>
+
+        val values = searchInEventSet(fieldName, triggeredEventSet)
+        triggeredEventSet.resume()
+        values.head
+
+      case None =>
+        log.debug(s"Breakpoint event wasn't triggered. Nothing was found")
+        None
+    }
+
+
+    log.debug(s"Found next results: \n\t ${searchResult.mkString("\n\t")}")
+    searchResult
+  }
+
+  private def searchInEventSet(fieldName: FieldName,
+                               triggeredEventSet: EventSet): List[Option[CommandExecutionResult]] = {
+
+    triggeredEventSet.eventIterator().asScala.map { event =>
+      event.request() match {
+        case breakpointRequest: BreakpointRequest =>
+          val breakpointEvent = event.asInstanceOf[BreakpointEvent]
+          val stackFrame = breakpointEvent.thread().frames().asScala.head
+          val localVariable = stackFrame.visibleVariables().asScala.find(_.name() == fieldName)
+
+          localVariable match {
+            case Some(variable) =>
+
+              val jdiValue = stackFrame.getValue(variable)
+              jdiValue match {
+                case sr: StringReference => Option(sr.value())
+                case ar: ArrayReference => Option(ar.getValues.asScala.mkString)
+                case pv: PrimitiveValue => Option(pv.toString)
+                case _ => log.error(formatErrorMessage("value in frames", fieldName)); None
+              }
+
+            case None => log.error(formatErrorMessage("value in frames", fieldName)); None
           }
-        case None => throw VmException(formatErrorMessage("value in frames", fieldName))
       }
-    } recover {
-      case VmException(e) => thread.resume(); e
-    }
-
+    }.toList
   }
 
-
-  private def safeFrameVariableSearch(f: StackFrame, t: FieldName): Option[(StackFrame, Option[LocalVariable])] = {
-    failing(classOf[AbsentInformationException]) {
-      Some(f, Option(f.visibleVariableByName(t)))
-    }
-  }
-
-  private def formatErrorMessage(unableToFind: String, using: String) = {
-    findErrorMessage.format(unableToFind, using)
-  }
-
-  private def findLocationBy(breakpointLine: BreakpointLine, className: ReferenceType) = {
-    className.allLineLocations.asScala.find(_.lineNumber == breakpointLine)
+  private def findLocationBy(breakpointLine: BreakpointLine, classRef: ReferenceType) = {
+    classRef.allLineLocations.asScala.find(_.lineNumber == breakpointLine)
   }
 
   private def createBreakpointBy(location: Location) = {
@@ -93,6 +107,10 @@ case class JdiVmConnection(address: Address, port: Port) extends Connection {
     val createBreakpointRequest = erm.createBreakpointRequest(location)
     createBreakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL)
     createBreakpointRequest
+  }
+
+  private def formatErrorMessage(unableToFind: String, using: String) = {
+    findErrorMessage.format(unableToFind, using)
   }
 
   private def findThreadBy(name: String) = {

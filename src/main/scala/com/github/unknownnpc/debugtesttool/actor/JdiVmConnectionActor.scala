@@ -2,19 +2,19 @@ package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, Props, ReceiveTimeout}
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
-import com.github.unknownnpc.debugtesttool.connection.{Connection, JdiVmConnection}
+import com.github.unknownnpc.debugtesttool.connection.{JdiVmConnection, VmConnection}
 import com.github.unknownnpc.debugtesttool.domain.{TestCase, TestTarget}
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
 
 class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: ExecutionContext) extends Actor with ActorLogging {
 
-  private var jdiVmConnection: Connection = _
+  private val actorIdleTimeout = DebugTestToolConfig.systemConfig.removeVmConnectionIdleTimeout.duration
+  private var jdiVmConnection: VmConnection = _
 
   override def preStart() {
-    context.setReceiveTimeout(DebugTestToolConfig.systemConfig.removeVmConnectionIdleTimeout.duration)
+    context.setReceiveTimeout(actorIdleTimeout)
     jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
     jdiVmConnection.lockVm()
   }
@@ -26,23 +26,25 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       val senderActor = sender()
       val testCase = request.testCase
       prepareVmForSearch(testCase)
-      val possibleResult = jdiVmConnection.findValue(testCase.breakPointThreadName, testCase.fieldName)
+      val possibleResult = jdiVmConnection.findValue(
+        testCase.breakPointThreadName, testCase.fieldName, testCase.breakpointWaiting
+      )
 
       possibleResult match {
 
-        case Success(result) =>
+        case Some(result) =>
           log.info(s"Connection received data from VM: [$result]")
           senderActor ! JdiVmConnectionSuccess(result)
 
-        case Failure(t) =>
-          val errorMessage: String = s"Failed test case execution for next case [${request.testCase}]"
+        case None =>
+          val errorMessage: String = s"Unable to find value for next test case [${request.testCase}]"
           log.error(errorMessage)
           senderActor ! JdiVmConnectionFailed(errorMessage)
       }
       resetVM()
 
     case ReceiveTimeout =>
-      log.info("Incoming messages idle. Unlock VM. Turn off connection actor")
+      log.info(s"Connection actor is idling after [$actorIdleTimeout]. Unlock VM. Stopping...")
       jdiVmConnection.unlockVm()
       context.stop(self)
 

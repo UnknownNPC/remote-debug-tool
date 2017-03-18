@@ -9,8 +9,7 @@ import scala.sys.process._
 
 trait JdkDebugProcessUtil {
 
-  def runJavaClassInDebugMode(jdiTestFolderName: String,
-                              javaClassName: String,
+  def runJavaClassInDebugMode(javaClassName: String,
                               debugPort: Port,
                               args: String = "",
                               javaPath: String = "java"): Process = {
@@ -23,11 +22,10 @@ trait JdkDebugProcessUtil {
       , s"$args"
     )
 
-    val processLogSupress = ProcessLogger(_ => Unit)
     Process(
       tuneCommandForMultiplatform(runJavaClassCommand),
-      new File(absolutePathToResourceFolderBy("/jdi") + File.separator + s"$jdiTestFolderName")
-    ).run(processLogSupress)
+      new File(absolutePathToResourceFolderBy("/jdi"))
+    ).run()
   }
 
   private def absolutePathToResourceFolderBy(name: String) = {

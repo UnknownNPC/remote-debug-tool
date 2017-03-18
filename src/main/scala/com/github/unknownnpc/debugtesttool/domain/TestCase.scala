@@ -22,8 +22,8 @@ sealed trait TestCase {
 
 case class JvmTestCase(targetId: ID,
                        breakPointLine: BreakpointLine,
-                       breakPointThreadName: BreakpointThreadName = "main",
                        breakPointClassName: BreakpointClassName,
                        breakpointWaiting: BreakpointWaiting,
                        fieldName: FieldName,
-                       testAction: TestAction) extends TestCase
+                       testAction: TestAction,
+                       breakPointThreadName: BreakpointThreadName = "main") extends TestCase
