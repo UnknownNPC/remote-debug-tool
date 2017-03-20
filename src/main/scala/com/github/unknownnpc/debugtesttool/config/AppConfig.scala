@@ -50,7 +50,7 @@ trait DebugTestToolConfig extends AppConfig {
         row.getInt(SERVER_ID),
         row.getInt(BREAKPOINT_LINE),
         row.getString(BREAKPOINT_CLASS_NAME),
-        row.getDuration(BREAKPOINT_WAITING),
+        row.getDuration(BREAKPOINT_EVENT_TRIGGER_TIMEOUT),
         row.getString(FIELD_NAME)
       )
     }

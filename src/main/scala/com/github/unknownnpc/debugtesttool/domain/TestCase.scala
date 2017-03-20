@@ -8,7 +8,7 @@ sealed trait TestCase {
 
   def breakPointClassName: BreakpointClassName
 
-  def breakpointWaiting: BreakpointWaiting
+  def breakpointEventTriggerTimeout: BreakpointEventTriggerTimeout
 
   def fieldName: FieldName
 
@@ -17,5 +17,5 @@ sealed trait TestCase {
 case class JvmTestCase(targetId: ID,
                        breakPointLine: BreakpointLine,
                        breakPointClassName: BreakpointClassName,
-                       breakpointWaiting: BreakpointWaiting,
+                       breakpointEventTriggerTimeout: BreakpointEventTriggerTimeout,
                        fieldName: FieldName) extends TestCase

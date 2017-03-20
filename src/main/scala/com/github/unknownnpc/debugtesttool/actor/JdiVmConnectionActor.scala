@@ -26,7 +26,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       val senderActor = sender()
       val testCase = request.testCase
       prepareVmForSearch(testCase)
-      val possibleResult = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointWaiting)
+      val possibleResult = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
 
       possibleResult match {
 
@@ -42,7 +42,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       resetVM()
 
     case ReceiveTimeout =>
-      log.info(s"Connection actor is idling after [$actorIdleTimeout] seconds. Unlock VM. Stopping.")
+      log.info(s"Connection actor is idling after [$actorIdleTimeout]. Unlock VM. Stopping.")
       jdiVmConnection.unlockVm()
       context.stop(self)
 

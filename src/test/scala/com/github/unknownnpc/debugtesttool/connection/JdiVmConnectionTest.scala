@@ -59,7 +59,7 @@ class JdiVmConnectionTest extends WordSpec
     connection.lockVm()
     connection.setBreakpoint(testCase.breakPointLine, testCase.breakPointClassName)
     connection.unlockVm()
-    val value = connection.findValue(testCase.fieldName, testCase.breakpointWaiting)
+    val value = connection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
     connection.removeBreakpoint()
     value
   }

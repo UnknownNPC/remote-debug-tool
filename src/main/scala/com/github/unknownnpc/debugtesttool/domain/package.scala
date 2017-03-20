@@ -11,7 +11,7 @@ package object domain {
   type BreakpointThreadName = String
   type BreakpointClassName = String
   type FieldName = String
-  type BreakpointWaiting = FiniteDuration
+  type BreakpointEventTriggerTimeout = FiniteDuration
 
   type CommandExecutionResult = String
   type CommandFailReason = String

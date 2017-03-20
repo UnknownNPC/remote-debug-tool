@@ -57,12 +57,12 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
     breakpoint.disable()
   }
 
-  override def findValue(fieldName: FieldName, breakpointWaiting: BreakpointWaiting) = {
+  override def findValue(fieldName: FieldName, searchTimeout: BreakpointEventTriggerTimeout) = {
 
     val evtQueue = vm.eventQueue()
 
-    log.debug(s"Variable search process started. Timeout: [${breakpointWaiting.toSeconds}] seconds")
-    val optionalTriggeredEventSet = Option(evtQueue.remove(breakpointWaiting.toMillis))
+    log.debug(s"Variable search process started. Timeout: [${searchTimeout.toSeconds}] seconds")
+    val optionalTriggeredEventSet = Option(evtQueue.remove(searchTimeout.toMillis))
 
     val searchResult = optionalTriggeredEventSet match {
       case Some(triggeredEventSet) =>
