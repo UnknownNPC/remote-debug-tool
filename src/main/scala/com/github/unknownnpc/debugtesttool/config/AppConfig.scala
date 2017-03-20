@@ -3,7 +3,6 @@ package com.github.unknownnpc.debugtesttool.config
 import java.time.{Duration => Jduration}
 
 import akka.util.Timeout
-import com.github.unknownnpc.debugtesttool.action.{NotNull, TestAction, UnknownAction}
 import com.github.unknownnpc.debugtesttool.domain._
 import com.typesafe.config.{Config, ConfigFactory}
 
@@ -47,25 +46,15 @@ trait DebugTestToolConfig extends AppConfig {
 
   override def testCases: List[TestCase] = {
     configFile.getConfigList(TEST_CASES).asScala.map(row => {
-      val testAction: TestAction = testActionFrom(row.getString(TEST_ACTION))
       JvmTestCase(
         row.getInt(SERVER_ID),
         row.getInt(BREAKPOINT_LINE),
         row.getString(BREAKPOINT_CLASS_NAME),
         row.getDuration(BREAKPOINT_WAITING),
-        row.getString(FIELD_NAME),
-        testAction,
-        row.getString(BREAKPOINT_THREAD_NAME)
+        row.getString(FIELD_NAME)
       )
     }
     ).toList
-  }
-
-  private def testActionFrom(configValue: String): TestAction = {
-    configValue match {
-      case NOT_NULL_ACTION => NotNull
-      case _ => UnknownAction
-    }
   }
 }
 

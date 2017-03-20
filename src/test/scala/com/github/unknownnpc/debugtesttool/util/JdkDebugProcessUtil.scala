@@ -22,10 +22,11 @@ trait JdkDebugProcessUtil {
       , s"$args"
     )
 
+    val processLog = ProcessLogger(message => s"External process message: [$message]")
     Process(
       tuneCommandForMultiplatform(runJavaClassCommand),
       new File(absolutePathToResourceFolderBy("/jdi"))
-    ).run()
+    ).run(processLog)
   }
 
   private def absolutePathToResourceFolderBy(name: String) = {

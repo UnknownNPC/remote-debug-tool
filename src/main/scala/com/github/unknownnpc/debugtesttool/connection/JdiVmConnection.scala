@@ -16,8 +16,6 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
   private val log = LoggerFactory.getLogger(this.getClass)
   private val findErrorMessage = "Unable to find `%s` using next `%s`"
-  private var breakpoint: BreakpointRequest = _
-
   private val vm: VirtualMachine = {
     val socketConnector = findSocketConnector().getOrElse(
       throw VmException("Unable to find `dt_socket` connection")
@@ -27,6 +25,7 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
     connectorParams.get(CONNECTOR_HOSTNAME_KEY).setValue(address)
     socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams)
   }
+  private var breakpoint: BreakpointRequest = _
 
   override def lockVm() = {
     vm.suspend()
@@ -43,11 +42,22 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
     breakpoint.enable()
   }
 
+  private def findLocationBy(breakpointLine: BreakpointLine, classRef: ReferenceType) = {
+    classRef.allLineLocations.asScala.find(_.lineNumber == breakpointLine)
+  }
+
+  private def createBreakpointBy(location: Location) = {
+    val erm = vm.eventRequestManager()
+    val createBreakpointRequest = erm.createBreakpointRequest(location)
+    createBreakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL)
+    createBreakpointRequest
+  }
+
   override def removeBreakpoint() = {
     breakpoint.disable()
   }
 
-  override def findValue(breakPointThreadName: BreakpointThreadName, fieldName: FieldName, breakpointWaiting: BreakpointWaiting) = {
+  override def findValue(fieldName: FieldName, breakpointWaiting: BreakpointWaiting) = {
 
     val evtQueue = vm.eventQueue()
 
@@ -96,17 +106,6 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
           }
       }
     }.toList
-  }
-
-  private def findLocationBy(breakpointLine: BreakpointLine, classRef: ReferenceType) = {
-    classRef.allLineLocations.asScala.find(_.lineNumber == breakpointLine)
-  }
-
-  private def createBreakpointBy(location: Location) = {
-    val erm = vm.eventRequestManager()
-    val createBreakpointRequest = erm.createBreakpointRequest(location)
-    createBreakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL)
-    createBreakpointRequest
   }
 
   private def formatErrorMessage(unableToFind: String, using: String) = {

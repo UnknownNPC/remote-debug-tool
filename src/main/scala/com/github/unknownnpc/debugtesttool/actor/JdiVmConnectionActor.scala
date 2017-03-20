@@ -26,9 +26,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       val senderActor = sender()
       val testCase = request.testCase
       prepareVmForSearch(testCase)
-      val possibleResult = jdiVmConnection.findValue(
-        testCase.breakPointThreadName, testCase.fieldName, testCase.breakpointWaiting
-      )
+      val possibleResult = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointWaiting)
 
       possibleResult match {
 
@@ -37,14 +35,14 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
           senderActor ! JdiVmConnectionSuccess(result)
 
         case None =>
-          val errorMessage: String = s"Unable to find value for next test case [${request.testCase}]"
+          val errorMessage: String = s"Unable to find value for next test case: [${request.testCase}]"
           log.error(errorMessage)
           senderActor ! JdiVmConnectionFailed(errorMessage)
       }
       resetVM()
 
     case ReceiveTimeout =>
-      log.info(s"Connection actor is idling after [$actorIdleTimeout]. Unlock VM. Stopping...")
+      log.info(s"Connection actor is idling after [$actorIdleTimeout] seconds. Unlock VM. Stopping.")
       jdiVmConnection.unlockVm()
       context.stop(self)
 
