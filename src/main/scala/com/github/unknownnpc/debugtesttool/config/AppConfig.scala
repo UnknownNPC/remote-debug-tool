@@ -51,11 +51,11 @@ trait DebugTestToolConfig extends AppConfig {
       JvmTestCase(
         row.getInt(SERVER_ID),
         row.getInt(BREAKPOINT_LINE),
-        row.getString(BREAKPOINT_THREAD_NAME),
         row.getString(BREAKPOINT_CLASS_NAME),
         row.getDuration(BREAKPOINT_WAITING),
         row.getString(FIELD_NAME),
-        testAction
+        testAction,
+        row.getString(BREAKPOINT_THREAD_NAME)
       )
     }
     ).toList

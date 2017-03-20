@@ -4,7 +4,7 @@ import com.github.unknownnpc.debugtesttool.domain._
 
 import scala.util.Try
 
-trait Connection {
+trait VmConnection {
 
   def lockVm()
 
@@ -14,6 +14,8 @@ trait Connection {
 
   def removeBreakpoint()
 
-  def findValue(breakPointThreadName: BreakpointThreadName, fieldName: FieldName): Try[CommandExecutionResult]
+  def findValue(breakPointThreadName: BreakpointThreadName,
+                fieldName: FieldName,
+                searchTimeout: BreakpointWaiting): Option[CommandExecutionResult]
 
 }
