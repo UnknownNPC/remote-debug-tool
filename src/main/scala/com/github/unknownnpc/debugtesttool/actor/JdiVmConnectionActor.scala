@@ -3,7 +3,7 @@ package com.github.unknownnpc.debugtesttool.actor
 import akka.actor.{Actor, ActorLogging, Props, ReceiveTimeout}
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
 import com.github.unknownnpc.debugtesttool.connection.{JdiVmConnection, VmConnection}
-import com.github.unknownnpc.debugtesttool.domain.{TestCase, TestTarget}
+import com.github.unknownnpc.debugtesttool.domain.{JvmExecutionPayload, TestCase, TestTarget}
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
@@ -15,7 +15,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
 
   override def preStart() {
     context.setReceiveTimeout(actorIdleTimeout)
-    jdiVmConnection = JdiVmConnection(testTarget.id, testTarget.address, testTarget.port)
+    jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
     jdiVmConnection.lockVm()
   }
 
@@ -26,13 +26,13 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
       val senderActor = sender()
       val testCase = request.testCase
       prepareVmForSearch(testCase)
-      val possibleResult = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
+      val optionalValue = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
 
-      possibleResult match {
+      optionalValue match {
 
-        case Some(result) =>
-          log.info(s"Connection received data from VM: [$result]")
-          senderActor ! JdiVmConnectionSuccess(result)
+        case Some(value) =>
+          log.info(s"Connection received data from VM: [$value]")
+          senderActor ! JdiVmConnectionSuccess(JvmExecutionPayload(testTarget, testCase, value))
 
         case None =>
           val errorMessage: String = s"Unable to find value for next test case: [${request.testCase}]"

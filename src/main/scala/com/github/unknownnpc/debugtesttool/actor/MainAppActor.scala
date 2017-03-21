@@ -16,8 +16,8 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
 
   override def preStart(): Unit = {
     log.info("Main app actor starts")
-    jdiVmServiceActor = createJdiVmServiceActor()
     reportServiceActor = createReportServiceActor()
+    jdiVmServiceActor = createJdiVmServiceActor()
   }
 
   override def postStop() {

@@ -12,6 +12,6 @@ trait VmConnection {
 
   def removeBreakpoint()
 
-  def findValue(fieldName: FieldName, searchTimeout: BreakpointEventTriggerTimeout): Option[ResultPayload]
+  def findValue(fieldName: FieldName, searchTimeout: BreakpointEventTriggerTimeout): Option[TestCaseValue]
 
 }

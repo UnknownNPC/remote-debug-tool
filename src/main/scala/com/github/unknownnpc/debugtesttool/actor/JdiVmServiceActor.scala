@@ -4,7 +4,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import akka.pattern._
 import akka.util.Timeout
 import com.github.unknownnpc.debugtesttool.config.AppConfig
-import com.github.unknownnpc.debugtesttool.domain._
+import com.github.unknownnpc.debugtesttool.domain.{ExecutionPayload, _}
 import com.github.unknownnpc.debugtesttool.exception.VmException
 import com.github.unknownnpc.debugtesttool.message._
 
@@ -22,8 +22,8 @@ class JdiVmServiceActor(appConfig: AppConfig, reportActorRef: ActorRef)(implicit
   override def receive = {
 
     case JdiVmServiceStart =>
-      val l = List[Future[CommandExecutionResult]]=
-        appConfig.testCases.map { testCase =>
+
+      val collectedPayload= appConfig.testCases.map { testCase =>
 
           (connectionGatewayActor ? JdiVmConnectionRequest(testCase)).flatMap {
           case JdiVmConnectionSuccess(resultPayload) =>
@@ -40,6 +40,7 @@ class JdiVmServiceActor(appConfig: AppConfig, reportActorRef: ActorRef)(implicit
             Future.failed(VmException(errorMessage))
         }
       }
+      pipeToReportActor(collectedPayload)
 
     case JdiVmServiceStop =>
       log.warning("VM resources cleaning")
@@ -47,15 +48,14 @@ class JdiVmServiceActor(appConfig: AppConfig, reportActorRef: ActorRef)(implicit
 
   }
 
-  private def createReportSummaryFrom(testCase: TestCase, testTarget: TestTarget, result: CommandExecutionResult) = {
-    JvmCaseSummary(
-      testTarget.id,
-      testTarget.address,
-      testTarget.port,
-      testCase.breakPointLine,
-      testCase.breakPointClassName,
-      result
-    )
+  private def pipeToReportActor(allExecutionPayload: List[Future[ExecutionPayload]]) = {
+    Future.sequence(allExecutionPayload).onComplete {
+      case Success(executionPayloads) =>
+        log.debug("All cases were collected. Creating report")
+        reportActorRef ! ReportServicePayload(executionPayloads.map(_.toReportRow))
+      case Failure(reason) =>
+        log.error("Unable to print logs")
+    }
   }
 
   private def connectionGatewayActorRef(testTargets: List[TestTarget]) = {

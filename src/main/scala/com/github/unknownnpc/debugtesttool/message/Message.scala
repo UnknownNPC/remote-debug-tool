@@ -13,12 +13,12 @@ object JdiVmServiceStart extends JdiVmServiceCommand
 object JdiVmServiceStop extends JdiVmServiceCommand
 
 trait ReportServiceCommand extends Message
-case class ReportServicePayload(summaries: List[CaseSummary]) extends ReportServiceCommand
+case class ReportServicePayload(summaries: List[ReportRow]) extends ReportServiceCommand
 object ReportServiceStop extends ReportServiceCommand
 
 trait VmConnectionMessage extends Message
 case class JdiVmConnectionRequest(testCase: TestCase) extends VmConnectionMessage
-case class JdiVmConnectionSuccess(result: ResultPayload) extends VmConnectionMessage
+case class JdiVmConnectionSuccess(result: ExecutionPayload) extends VmConnectionMessage
 case class JdiVmConnectionFailed(reason: CommandFailReason) extends VmConnectionMessage
 
 

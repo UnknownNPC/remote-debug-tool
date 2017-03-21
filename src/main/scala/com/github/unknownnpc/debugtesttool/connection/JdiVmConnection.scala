@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-case class JdiVmConnection(id: ID, address: Address, port: Port) extends VmConnection {
+case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -64,10 +64,11 @@ case class JdiVmConnection(id: ID, address: Address, port: Port) extends VmConne
     log.debug(s"Variable search process started. Timeout: [${searchTimeout.toSeconds}] seconds")
     val optionalTriggeredEventSet = Option(evtQueue.remove(searchTimeout.toMillis))
 
-    val searchResult = optionalTriggeredEventSet match {
+    val headSearchValue = optionalTriggeredEventSet match {
       case Some(triggeredEventSet) =>
 
         val values = searchInEventSet(fieldName, triggeredEventSet)
+        log.debug(s"Found next results: \n ${values.mkString("\n")}")
         triggeredEventSet.resume()
         values.head
 
@@ -75,14 +76,11 @@ case class JdiVmConnection(id: ID, address: Address, port: Port) extends VmConne
         log.debug(s"Breakpoint event wasn't triggered. Nothing was found")
         None
     }
-
-
-    log.debug(s"Found next results: \n ${searchResult.mkString("\n")}")
-    JvmResultPayload(id, )
+    headSearchValue
   }
 
   private def searchInEventSet(fieldName: FieldName,
-                               triggeredEventSet: EventSet): List[Option[CommandExecutionResult]] = {
+                               triggeredEventSet: EventSet): List[Option[TestCaseValue]] = {
 
     triggeredEventSet.eventIterator().asScala.map { event =>
       event.request() match {

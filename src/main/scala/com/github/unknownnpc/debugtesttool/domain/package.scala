@@ -13,7 +13,7 @@ package object domain {
   type FieldName = String
   type BreakpointEventTriggerTimeout = FiniteDuration
 
-  type CommandExecutionResult = String
+  type TestCaseValue = String
   type CommandFailReason = String
 
 }

@@ -9,7 +9,7 @@ class ReportServiceActor(mainAppActorRef: ActorRef, reportExecutor: ReportExecut
   override def receive: Receive = {
 
     case ReportServicePayload(summaries) =>
-      reportExecutor.execute(summaries)
+      log.info(reportExecutor.execute(summaries).toString)
       //stop app
       mainAppActorRef ! MainAppActorStop
 
