@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
+case class JdiVmConnection(id: ID, address: Address, port: Port) extends VmConnection {
 
 
   private val log = LoggerFactory.getLogger(this.getClass)
@@ -78,7 +78,7 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
 
     log.debug(s"Found next results: \n ${searchResult.mkString("\n")}")
-    searchResult
+    JvmResultPayload(id, )
   }
 
   private def searchInEventSet(fieldName: FieldName,

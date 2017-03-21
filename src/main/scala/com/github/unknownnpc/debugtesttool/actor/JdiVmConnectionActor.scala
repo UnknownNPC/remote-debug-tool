@@ -15,7 +15,7 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
 
   override def preStart() {
     context.setReceiveTimeout(actorIdleTimeout)
-    jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
+    jdiVmConnection = JdiVmConnection(testTarget.id, testTarget.address, testTarget.port)
     jdiVmConnection.lockVm()
   }
 
