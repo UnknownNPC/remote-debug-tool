@@ -77,7 +77,7 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
     }
 
 
-    log.debug(s"Found next results: \n\t ${searchResult.mkString("\n\t")}")
+    log.debug(s"Found next results: \n ${searchResult.mkString("\n")}")
     searchResult
   }
 
