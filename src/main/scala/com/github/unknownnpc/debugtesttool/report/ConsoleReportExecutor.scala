@@ -1,19 +1,19 @@
 package com.github.unknownnpc.debugtesttool.report
 
-import com.github.unknownnpc.debugtesttool.domain.{Address, CaseSummary, ID, Port}
+import com.github.unknownnpc.debugtesttool.domain.{Address, ReportRow, ID, Port}
 
 trait ConsoleReportExecutor extends ReportExecutor {
 
   //not sure that it's ok : [
   override type T = String
 
-  override def execute(summaries: List[CaseSummary]): String = {
+  override def execute(summaries: List[ReportRow]): String = {
     val converted: Seq[Seq[String]] = convertSummaryToSeqOfSeq(summaries)
     format(converted)
   }
 
-  private def convertSummaryToSeqOfSeq(summaries: List[CaseSummary]): Seq[Seq[String]] = {
-    val caseToSummaries: Map[(ID, Address, Port), List[CaseSummary]] = summaries.groupBy(
+  private def convertSummaryToSeqOfSeq(summaries: List[ReportRow]): Seq[Seq[String]] = {
+    val caseToSummaries: Map[(ID, Address, Port), List[ReportRow]] = summaries.groupBy(
       record => (record.targetId, record.targetAddress, record.targetPort)
     )
     headers() +:
@@ -41,6 +41,7 @@ trait ConsoleReportExecutor extends ReportExecutor {
   }
 
   private def formatRows(rowSeparator: String, rows: Seq[String]): String = (
+    "\n" ::
     rowSeparator ::
       rows.head ::
       rows.tail.toList :::

@@ -1,11 +1,11 @@
 package com.github.unknownnpc.debugtesttool.report
 
-import com.github.unknownnpc.debugtesttool.domain.JvmCaseSummary
+import com.github.unknownnpc.debugtesttool.domain.JvmReportRow
 import org.scalatest.{Matchers, WordSpec}
 
 class ConsoleReportExecutorTest extends WordSpec with Matchers {
 
-  val validTable = "+--+---------+----+----------+---------------+--------------+" + "\n" +
+  private val validTable = "\n" + "+--+---------+----+----------+---------------+--------------+" + "\n" +
     "|ID|  Address|Port|Class name|Breakpoint line|     JVM value|" + "\n" +
     "| 2|127.0.0.1|8080|          |               |              |" + "\n" +
     "|  |         |    |ClassNameC|             15|magic result C|" + "\n" +
@@ -17,7 +17,7 @@ class ConsoleReportExecutorTest extends WordSpec with Matchers {
     "+--+---------+----+----------+---------------+--------------+"
 
 
-  val emptyTable = "+--+-------+----+----------+---------------+---------+" + "\n" +
+  private val emptyTable = "\n" + "+--+-------+----+----------+---------------+---------+" + "\n" +
     "|ID|Address|Port|Class name|Breakpoint line|JVM value|" + "\n" +
     "+--+-------+----+----------+---------------+---------+"
 
@@ -25,11 +25,11 @@ class ConsoleReportExecutorTest extends WordSpec with Matchers {
 
     "build valid table for several summaries" in {
       val summaries = List(
-        JvmCaseSummary(1, "localhost", 8080, 13, "ClassNameA", "magic result A"),
-        JvmCaseSummary(1, "localhost", 8080, 14, "ClassNameB", "magic result B"),
-        JvmCaseSummary(2, "127.0.0.1", 8080, 15, "ClassNameC", "magic result C"),
-        JvmCaseSummary(2, "127.0.0.1", 8080, 19, "ClassNameD", "magic result D"),
-        JvmCaseSummary(2, "127.0.0.1", 8080, 20, "ClassNameE", "magic result E")
+        JvmReportRow(1, "localhost", 8080, 13, "ClassNameA", "magic result A"),
+        JvmReportRow(1, "localhost", 8080, 14, "ClassNameB", "magic result B"),
+        JvmReportRow(2, "127.0.0.1", 8080, 15, "ClassNameC", "magic result C"),
+        JvmReportRow(2, "127.0.0.1", 8080, 19, "ClassNameD", "magic result D"),
+        JvmReportRow(2, "127.0.0.1", 8080, 20, "ClassNameE", "magic result E")
       )
       val result = ConsoleReportExecutor.execute(summaries)
       result should equal(validTable)

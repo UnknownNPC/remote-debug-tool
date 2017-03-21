@@ -1,11 +1,11 @@
 package com.github.unknownnpc.debugtesttool.report
 
-import com.github.unknownnpc.debugtesttool.domain.CaseSummary
+import com.github.unknownnpc.debugtesttool.domain.ReportRow
 
 trait ReportExecutor {
 
   type T
 
-  def execute(summaries: List[CaseSummary]): T
+  def execute(summaries: List[ReportRow]): T
 
 }

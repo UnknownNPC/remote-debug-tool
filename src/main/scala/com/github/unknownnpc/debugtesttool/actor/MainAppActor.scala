@@ -2,7 +2,7 @@ package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem}
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
-import com.github.unknownnpc.debugtesttool.message.{JdiVmServiceStart, JdiVmServiceStop, MainAppActorStart, MainAppActorStop}
+import com.github.unknownnpc.debugtesttool.message._
 
 import scala.concurrent.ExecutionContext
 
@@ -10,10 +10,13 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
 
   private implicit val dispatcher: ExecutionContext = actorSystem.dispatcher
 
+  private val fullConfig = DebugTestToolConfig
   private var jdiVmServiceActor: ActorRef = _
+  private var reportServiceActor: ActorRef = _
 
   override def preStart(): Unit = {
     log.info("Main app actor starts")
+    reportServiceActor = createReportServiceActor()
     jdiVmServiceActor = createJdiVmServiceActor()
   }
 
@@ -40,10 +43,15 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
   private def stopServices() = {
     log.info("Received command to stop all services")
     jdiVmServiceActor ! JdiVmServiceStop
+    reportServiceActor ! ReportServiceStop
   }
 
   private def createJdiVmServiceActor() = {
-    context.actorOf(JdiVmServiceActor.props(DebugTestToolConfig), "jdi-vm-service")
+    context.actorOf(JdiVmServiceActor.props(fullConfig, reportServiceActor), "jdi-vm-service")
+  }
+
+  private def createReportServiceActor() = {
+    context.actorOf(ReportServiceActor.props(self, fullConfig.systemConfig.reportExecutor), "report-service")
   }
 
 }
