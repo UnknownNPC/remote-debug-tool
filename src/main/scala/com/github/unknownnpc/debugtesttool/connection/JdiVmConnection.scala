@@ -18,18 +18,18 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
   private var vm: Option[VirtualMachine] = None
   private var breakpoint: Option[BreakpointRequest] = None
 
-  implicit def tuneOption[T](option: Option[T]) = new ConnectionOption(option)
+  implicit def tuneOption[T](option: Option[T]): ConnectionOption[T] = new ConnectionOption(option)
 
   override def lockVm() {
-    vm.getVm().suspend()
+    vm.getVm.suspend()
   }
 
   override def unlockVm() {
-    vm.getVm().resume()
+    vm.getVm.resume()
   }
 
   override def connect() {
-    val socketConnector = findSocketConnector().getConnector()
+    val socketConnector = findSocketConnector().getConnector
     val connectorParams = socketConnector.defaultArguments()
     connectorParams.get(CONNECTOR_PORT_KEY).setValue(port.toString)
     connectorParams.get(CONNECTOR_HOSTNAME_KEY).setValue(address)
@@ -37,18 +37,18 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
   }
 
   override def disconnect() {
-    vm.getVm().dispose()
+    vm.getVm.dispose()
   }
 
   override def enableBreakpoint(line: BreakpointLine, className: BreakpointClassName) {
-    val referenceType = vm.getVm().classesByName(className).asScala.headOption.getReferenceType(className)
+    val referenceType = vm.getVm.classesByName(className).asScala.headOption.getReferenceType(className)
     val location = findLocationBy(line, referenceType).getLocation(line)
     breakpoint = Option(createBreakpointBy(location))
-    breakpoint.getBreakpoint().enable()
+    breakpoint.getBreakpoint.enable()
   }
 
   override def disableBreakpoint() {
-    breakpoint.getBreakpoint().disable()
+    breakpoint.getBreakpoint.disable()
   }
 
   private def findLocationBy(breakpointLine: BreakpointLine, classRef: ReferenceType) = {
@@ -56,7 +56,7 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
   }
 
   private def createBreakpointBy(location: Location) = {
-    val erm = vm.getVm().eventRequestManager()
+    val erm = vm.getVm.eventRequestManager()
     val createBreakpointRequest = erm.createBreakpointRequest(location)
     createBreakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL)
     createBreakpointRequest
@@ -64,7 +64,7 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
   override def findValue(fieldName: FieldName, searchTimeout: BreakpointEventTriggerTimeout) = {
 
-    val evtQueue = vm.getVm().eventQueue()
+    val evtQueue = vm.getVm.eventQueue()
 
     log.debug(s"Variable search process started. Timeout: [${searchTimeout.toSeconds}] seconds")
     val optionalTriggeredEventSet = Option(evtQueue.remove(searchTimeout.toMillis))
@@ -113,7 +113,7 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
 
   private def findThreadBy(name: String) = {
-    vm.getVm().allThreads().asScala.find(_.name() == name)
+    vm.getVm.allThreads().asScala.find(_.name() == name)
   }
 
   private def findSocketConnector() = {
