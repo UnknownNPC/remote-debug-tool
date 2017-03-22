@@ -51,7 +51,7 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
   }
 
   private def createReportServiceActor() = {
-    context.actorOf(ReportServiceActor.props(self, fullConfig.systemConfig.reportExecutor), "report-service")
+    context.actorOf(ReportServiceActor.props(self, fullConfig.systemConfig.reportFormatter), "report-service")
   }
 
 }

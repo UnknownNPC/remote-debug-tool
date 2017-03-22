@@ -2,14 +2,14 @@ package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import com.github.unknownnpc.debugtesttool.message.{MainAppActorStop, ReportServicePayload, ReportServiceStop}
-import com.github.unknownnpc.debugtesttool.report.ReportExecutor
+import com.github.unknownnpc.debugtesttool.report.ReportFormatter
 
-class ReportServiceActor(mainAppActorRef: ActorRef, reportExecutor: ReportExecutor) extends Actor with ActorLogging {
+class ReportServiceActor(mainAppActorRef: ActorRef, reportFormatter: ReportFormatter) extends Actor with ActorLogging {
 
   override def receive: Receive = {
 
-    case ReportServicePayload(summaries) =>
-      log.info(reportExecutor.execute(summaries).toString)
+    case ReportServicePayload(reports) =>
+      log.info(reportFormatter.format(reports))
       //stop app
       mainAppActorRef ! MainAppActorStop
 
@@ -24,6 +24,6 @@ class ReportServiceActor(mainAppActorRef: ActorRef, reportExecutor: ReportExecut
 }
 
 object ReportServiceActor {
-  def props(mainAppActorRef: ActorRef, reportExecutor: ReportExecutor) =
-    Props(new ReportServiceActor(mainAppActorRef, reportExecutor))
+  def props(mainAppActorRef: ActorRef, reportFormatter: ReportFormatter) =
+    Props(new ReportServiceActor(mainAppActorRef, reportFormatter))
 }
