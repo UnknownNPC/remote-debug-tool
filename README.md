@@ -11,7 +11,7 @@ Current tool was created as help-tool for developer needs in process of distribu
   * Configurable breakpoint list for target JVM
  
 ## Using ##
-1. Download the [latest release](https://github.com/brailleapps/braille-utils-cli/releases) and unpack it.
+1. Download the [latest release](https://github.com/UnknownNPC/remote-debug-test-tool/releases) and unpack it.
 
 2. Configure `conf/application.conf` file with target JVMs (`test-targets`) and debug points (`test-cases`). Please note that `test-cases.server-id` params should be equal to `test-targets.id`.
 
