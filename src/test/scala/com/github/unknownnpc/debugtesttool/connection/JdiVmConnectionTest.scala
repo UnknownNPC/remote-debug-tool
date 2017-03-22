@@ -56,11 +56,13 @@ class JdiVmConnectionTest extends WordSpec
   }
 
   private def executeTestCase(connection: VmConnection, testCase: JvmTestCase) = {
+    connection.connect()
     connection.lockVm()
-    connection.setBreakpoint(testCase.breakPointLine, testCase.breakPointClassName)
+    connection.enableBreakpoint(testCase.breakPointLine, testCase.breakPointClassName)
     connection.unlockVm()
     val value = connection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
-    connection.removeBreakpoint()
+    connection.disableBreakpoint()
+    connection.disconnect()
     value
   }
 

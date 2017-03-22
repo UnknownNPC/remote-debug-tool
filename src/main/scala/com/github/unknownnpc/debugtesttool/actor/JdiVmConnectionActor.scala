@@ -2,8 +2,8 @@ package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, Props, ReceiveTimeout}
 import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
-import com.github.unknownnpc.debugtesttool.connection.{JdiVmConnection, VmConnection}
-import com.github.unknownnpc.debugtesttool.domain.{JvmExecutionPayload, TestCase, TestTarget}
+import com.github.unknownnpc.debugtesttool.connection.JdiVmConnection
+import com.github.unknownnpc.debugtesttool.domain._
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
@@ -11,21 +11,28 @@ import scala.concurrent.ExecutionContext
 class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: ExecutionContext) extends Actor with ActorLogging {
 
   private val actorIdleTimeout = DebugTestToolConfig.systemConfig.removeVmConnectionIdleTimeout.duration
-  private var jdiVmConnection: VmConnection = _
+  private val jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
 
   override def preStart() {
     context.setReceiveTimeout(actorIdleTimeout)
-    jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
+    log.debug("Pre-start: connect and lock VM")
+    jdiVmConnection.connect()
     jdiVmConnection.lockVm()
   }
 
+  @scala.throws[Exception](classOf[Exception])
+  override def postStop() {
+    log.debug("Post-stop: unlock and disconnect VM")
+    jdiVmConnection.unlockVm()
+    jdiVmConnection.disconnect()
+  }
 
   override def receive = {
 
     case request: JdiVmConnectionRequest =>
       val senderActor = sender()
       val testCase = request.testCase
-      prepareVmForSearch(testCase)
+      syncBreakpointEnableWithVm(testCase.breakPointLine, testCase.breakPointClassName)
       val optionalValue = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
 
       optionalValue match {
@@ -39,11 +46,10 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
           log.error(errorMessage)
           senderActor ! JdiVmConnectionFailed(errorMessage)
       }
-      resetVM()
+      syncBreakpointDisableWithVm()
 
     case ReceiveTimeout =>
       log.info(s"Connection actor is idling after [$actorIdleTimeout]. Unlock VM. Stopping.")
-      jdiVmConnection.unlockVm()
       context.stop(self)
 
     case _ =>
@@ -52,14 +58,16 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
 
   }
 
-  private def prepareVmForSearch(testCase: TestCase) {
-    jdiVmConnection.setBreakpoint(testCase.breakPointLine, testCase.breakPointClassName)
+  private def syncBreakpointEnableWithVm(breakPointLine: BreakpointLine, breakpointClassName: BreakpointClassName) {
+    log.debug("Replacing `VM lock` with `Breakpoint enable`")
+    jdiVmConnection.enableBreakpoint(breakPointLine, breakpointClassName)
     jdiVmConnection.unlockVm()
   }
 
-  private def resetVM() = {
-    jdiVmConnection.removeBreakpoint()
+  private def syncBreakpointDisableWithVm() = {
+    log.debug("Replacing `Breakpoint enable` with `VM lock`")
     jdiVmConnection.lockVm()
+    jdiVmConnection.disableBreakpoint()
   }
 
 }

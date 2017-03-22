@@ -8,9 +8,13 @@ trait VmConnection {
 
   def unlockVm()
 
-  def setBreakpoint(line: BreakpointLine, className: BreakpointClassName)
+  def connect()
 
-  def removeBreakpoint()
+  def disconnect()
+
+  def enableBreakpoint(line: BreakpointLine, className: BreakpointClassName)
+
+  def disableBreakpoint()
 
   def findValue(fieldName: FieldName, searchTimeout: BreakpointEventTriggerTimeout): Option[TestCaseValue]
 

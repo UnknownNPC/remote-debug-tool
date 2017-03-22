@@ -1,7 +1,6 @@
 package com.github.unknownnpc.debugtesttool.connection
 
 import com.github.unknownnpc.debugtesttool.domain._
-import com.github.unknownnpc.debugtesttool.exception.VmException
 import com.sun.jdi._
 import com.sun.jdi.connect.AttachingConnector
 import com.sun.jdi.event.{BreakpointEvent, EventSet}
@@ -10,36 +9,46 @@ import com.sun.tools.jdi.SocketAttachingConnector
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
+import scala.language.implicitConversions
 
 case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
-
   private val log = LoggerFactory.getLogger(this.getClass)
-  private val findErrorMessage = "Unable to find `%s` using next `%s`"
-  private val vm: VirtualMachine = {
-    val socketConnector = findSocketConnector().getOrElse(
-      throw VmException("Unable to find `dt_socket` connection")
-    )
+
+  private var vm: Option[VirtualMachine] = None
+  private var breakpoint: Option[BreakpointRequest] = None
+
+  implicit def tuneOption[T](option: Option[T]) = new ConnectionOption(option)
+
+  override def lockVm() {
+    vm.getVm().suspend()
+  }
+
+  override def unlockVm() {
+    vm.getVm().resume()
+  }
+
+  override def connect() {
+    val socketConnector = findSocketConnector().getConnector()
     val connectorParams = socketConnector.defaultArguments()
     connectorParams.get(CONNECTOR_PORT_KEY).setValue(port.toString)
     connectorParams.get(CONNECTOR_HOSTNAME_KEY).setValue(address)
-    socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams)
-  }
-  private var breakpoint: BreakpointRequest = _
-
-  override def lockVm() = {
-    vm.suspend()
+    vm = Option(socketConnector.asInstanceOf[AttachingConnector].attach(connectorParams))
   }
 
-  override def unlockVm() = {
-    vm.resume()
+  override def disconnect() {
+    vm.getVm().dispose()
   }
 
-  override def setBreakpoint(line: BreakpointLine, className: BreakpointClassName) = {
-    val classRef = vm.classesByName(className).asScala.headOption.getOrElse(throw VmException("class"))
-    val location = findLocationBy(line, classRef).getOrElse(throw VmException("location"))
-    breakpoint = createBreakpointBy(location)
-    breakpoint.enable()
+  override def enableBreakpoint(line: BreakpointLine, className: BreakpointClassName) {
+    val referenceType = vm.getVm().classesByName(className).asScala.headOption.getReferenceType(className)
+    val location = findLocationBy(line, referenceType).getLocation(line)
+    breakpoint = Option(createBreakpointBy(location))
+    breakpoint.getBreakpoint().enable()
+  }
+
+  override def disableBreakpoint() {
+    breakpoint.getBreakpoint().disable()
   }
 
   private def findLocationBy(breakpointLine: BreakpointLine, classRef: ReferenceType) = {
@@ -47,19 +56,15 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
   }
 
   private def createBreakpointBy(location: Location) = {
-    val erm = vm.eventRequestManager()
+    val erm = vm.getVm().eventRequestManager()
     val createBreakpointRequest = erm.createBreakpointRequest(location)
     createBreakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_ALL)
     createBreakpointRequest
   }
 
-  override def removeBreakpoint() = {
-    breakpoint.disable()
-  }
-
   override def findValue(fieldName: FieldName, searchTimeout: BreakpointEventTriggerTimeout) = {
 
-    val evtQueue = vm.eventQueue()
+    val evtQueue = vm.getVm().eventQueue()
 
     log.debug(s"Variable search process started. Timeout: [${searchTimeout.toSeconds}] seconds")
     val optionalTriggeredEventSet = Option(evtQueue.remove(searchTimeout.toMillis))
@@ -81,7 +86,6 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
 
   private def searchInEventSet(fieldName: FieldName,
                                triggeredEventSet: EventSet): List[Option[TestCaseValue]] = {
-
     triggeredEventSet.eventIterator().asScala.map { event =>
       event.request() match {
         case breakpointRequest: BreakpointRequest =>
@@ -97,21 +101,19 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
                 case sr: StringReference => Option(sr.value())
                 case ar: ArrayReference => Option(ar.getValues.asScala.mkString)
                 case pv: PrimitiveValue => Option(pv.toString)
-                case _ => log.error(formatErrorMessage("value in frames", fieldName)); None
+                case or: ObjectReference => Option(or.toString)
+                case _ => log.error("Unable to detect `value` type"); None
               }
 
-            case None => log.error(formatErrorMessage("value in frames", fieldName)); None
+            case None => log.error("Unable to find value in frames"); None
           }
       }
     }.toList
   }
 
-  private def formatErrorMessage(unableToFind: String, using: String) = {
-    findErrorMessage.format(unableToFind, using)
-  }
 
   private def findThreadBy(name: String) = {
-    vm.allThreads().asScala.find(_.name() == name)
+    vm.getVm().allThreads().asScala.find(_.name() == name)
   }
 
   private def findSocketConnector() = {
