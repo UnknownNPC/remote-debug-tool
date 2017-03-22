@@ -6,9 +6,8 @@ scala:
 
 script:
   - sbt ++2.12.1 test
-  # avoid unnecessary cache updates
-  - find $HOME/.sbt -name "*.lock" | xargs rm
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
 cache:
   directories:
     - $HOME/.ivy2/cache

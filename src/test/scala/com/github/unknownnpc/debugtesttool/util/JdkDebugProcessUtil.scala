@@ -4,6 +4,7 @@ import java.io.File
 import java.nio.file.Paths
 
 import com.github.unknownnpc.debugtesttool.domain.Port
+import org.slf4j.LoggerFactory
 
 import scala.sys.process._
 
@@ -14,6 +15,8 @@ trait JdkDebugProcessUtil {
                               args: String = "",
                               javaPath: String = "java"): Process = {
 
+    val log = LoggerFactory.getLogger(this.getClass)
+
     val runJavaClassCommand = Seq(
       s"$javaPath"
       , "-Xdebug"
@@ -22,7 +25,7 @@ trait JdkDebugProcessUtil {
       , s"$args"
     )
 
-    val processLog = ProcessLogger(message => s"External process message: [$message]")
+    val processLog = ProcessLogger(message => log.debug(s"External process message: [$message]"))
     Process(
       tuneCommandForMultiplatform(runJavaClassCommand),
       new File(absolutePathToResourceFolderBy("/jdi"))

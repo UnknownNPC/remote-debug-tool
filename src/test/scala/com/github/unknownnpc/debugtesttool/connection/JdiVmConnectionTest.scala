@@ -30,18 +30,18 @@ class JdiVmConnectionTest extends WordSpec
   "VmJdiConnection" should {
 
     "find array `args` inside `main` method at line `7`" in {
-      val argsTask = JvmTestCase(1, 7, "Atest", FiniteDuration(10, TimeUnit.SECONDS), "args")
+      val argsTask = JvmTestCase(1, 7, "Atest", FiniteDuration(20, TimeUnit.SECONDS), "args")
       val result = executeTestCase(jdiConnection, argsTask)
       result.get should equal("\"someArgs\"")
     }
 
-    "find int `two` inside `calculate` method at line `14`" in {
+    "find int `two` inside `calculate` method at line `15`" in {
       val argsTask = JvmTestCase(1, 15, "Atest", FiniteDuration(20, TimeUnit.SECONDS), "two")
       val result = executeTestCase(jdiConnection, argsTask)
       result.get should equal("2")
     }
 
-    "not find int `three` inside `calculate` method at line `14`" in {
+    "not find int `three` inside `calculate` method at line `15`" in {
       val argsTask = JvmTestCase(1, 15, "Atest", FiniteDuration(20, TimeUnit.SECONDS), "three")
       val result = executeTestCase(jdiConnection, argsTask)
       result shouldBe None
