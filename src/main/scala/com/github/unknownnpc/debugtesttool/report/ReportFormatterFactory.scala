@@ -2,11 +2,11 @@ package com.github.unknownnpc.debugtesttool.report
 
 import com.github.unknownnpc.debugtesttool.exception.ConfigException
 
-trait ReportFactory {
+trait ReportFormatterFactory {
 
-  def findReportBy(reportType: ReportType.ReportTypeValue): ReportExecutor = {
+  def findReportBy(reportType: ReportType.ReportTypeValue): ReportFormatter = {
     reportType match {
-      case ReportType.ConsoleReport => ConsoleReportExecutor
+      case ReportType.ConsoleReport => ConsoleTableReportFormatter
       case _ => throw ConfigException("ReportType wasn't implemented")
     }
   }
@@ -14,9 +14,8 @@ trait ReportFactory {
   object ReportType extends Enumeration {
     type ReportTypeValue = Value
     val ConsoleReport = Value(CONSOLE_REPORT)
-    val FileReport = Value(FILE_REPORT)
   }
 
 }
 
-object ReportFactory extends ReportFactory
+object ReportFormatterFactory extends ReportFormatterFactory

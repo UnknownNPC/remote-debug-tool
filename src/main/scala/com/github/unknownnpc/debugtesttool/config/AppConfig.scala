@@ -4,8 +4,7 @@ import java.time.{Duration => Jduration}
 
 import akka.util.Timeout
 import com.github.unknownnpc.debugtesttool.domain._
-import com.github.unknownnpc.debugtesttool.report.ReportFactory.ReportType
-import com.github.unknownnpc.debugtesttool.report.{ReportExecutor, ReportFactory}
+import com.github.unknownnpc.debugtesttool.report.{ReportFormatter, ReportFormatterFactory}
 import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.collection.JavaConverters._
@@ -30,11 +29,11 @@ trait DebugTestToolConfig extends AppConfig {
 
   override def systemConfig: SystemConfig = {
     val systemConfig = configFile.getConfig(SYSTEM_CONFIG)
-    val reportType = systemConfig.getString(REPORT_TYPE)
+    val reportFormatterTypeString = systemConfig.getString(REPORT_FORMATTER)
     SystemConfig(
       Timeout.durationToTimeout(systemConfig.getDuration(REMOTE_VM_REQUEST_TIMEOUT)),
       Timeout.durationToTimeout(systemConfig.getDuration(REMOTE_VM_CONNECTION_IDLE_TIMEOUT)),
-      reportExecutorFrom(reportType)
+      reportFormatterFrom(reportFormatterTypeString)
     )
   }
 
@@ -61,9 +60,9 @@ trait DebugTestToolConfig extends AppConfig {
     ).toList
   }
 
-  private def reportExecutorFrom(configValue: String): ReportExecutor = {
-    val reportType = ReportType.withName(configValue)
-    ReportFactory.findReportBy(reportType)
+  private def reportFormatterFrom(reportFormatterTypeString: String): ReportFormatter = {
+    val reportType = ReportFormatterFactory.ReportType.withName(reportFormatterTypeString)
+    ReportFormatterFactory.findReportBy(reportType)
   }
 }
 
