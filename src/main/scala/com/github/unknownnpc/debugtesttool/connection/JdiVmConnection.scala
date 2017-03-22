@@ -68,12 +68,12 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
       case Some(triggeredEventSet) =>
 
         val values = searchInEventSet(fieldName, triggeredEventSet)
-        log.debug(s"Found next results: \n ${values.mkString("\n")}")
+        log.trace(s"Found next results: \n ${values.mkString("\n")}")
         triggeredEventSet.resume()
         values.head
 
       case None =>
-        log.debug(s"Breakpoint event wasn't triggered. Nothing was found")
+        log.error(s"Breakpoint event wasn't triggered. Nothing was found")
         None
     }
     headSearchValue

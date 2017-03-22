@@ -23,6 +23,7 @@ class JdiVmServiceActor(appConfig: AppConfig, reportActorRef: ActorRef)(implicit
 
     case JdiVmServiceStart =>
 
+      log.info(s"Trying to distribute tasks for targets. Timeout: [${timeout.duration}]")
       val collectedPayload= appConfig.testCases.map { testCase =>
 
           (connectionGatewayActor ? JdiVmConnectionRequest(testCase)).flatMap {
@@ -51,10 +52,13 @@ class JdiVmServiceActor(appConfig: AppConfig, reportActorRef: ActorRef)(implicit
   private def pipeToReportActor(allExecutionPayload: List[Future[ExecutionPayload]]) = {
     Future.sequence(allExecutionPayload).onComplete {
       case Success(executionPayloads) =>
-        log.debug("All cases were collected. Creating report")
+        log.debug("Success cases were collected. Creating report")
         reportActorRef ! ReportServicePayload(executionPayloads.map(_.toReportRow))
       case Failure(reason) =>
-        log.error("Unable to print logs")
+        log.error(
+          "Unable to prepare report. Payload collection process failed. " +
+          "Please check logs and stop app"
+        )
     }
   }
 
