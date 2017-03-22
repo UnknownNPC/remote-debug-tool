@@ -5,7 +5,7 @@ import java.time.{Duration => Jduration}
 import akka.util.Timeout
 import com.github.unknownnpc.debugtesttool.domain._
 import com.github.unknownnpc.debugtesttool.report.{ReportFormatter, ReportFormatterFactory}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -23,11 +23,11 @@ trait AppConfig {
 
 trait DebugTestToolConfig extends AppConfig {
 
-  private val configFile: Config = ConfigFactory.load()
+  private lazy val configFile = ConfigFactory.load()
 
   implicit def asFiniteDuration(d: Jduration): FiniteDuration = Duration.fromNanos(d.toNanos)
 
-  override def systemConfig: SystemConfig = {
+  lazy val systemConfig: SystemConfig = {
     val systemConfig = configFile.getConfig(SYSTEM_CONFIG)
     val reportFormatterTypeString = systemConfig.getString(REPORT_FORMATTER)
     SystemConfig(
@@ -37,7 +37,7 @@ trait DebugTestToolConfig extends AppConfig {
     )
   }
 
-  override def testTargets: List[TestTarget] = {
+  lazy val testTargets: List[TestTarget] = {
     configFile.getConfigList(TEST_TARGETS).asScala.map(row =>
       JvmTestTarget(
         row.getInt(ID),
@@ -47,7 +47,7 @@ trait DebugTestToolConfig extends AppConfig {
     ).toList
   }
 
-  override def testCases: List[TestCase] = {
+  lazy val testCases: List[TestCase] = {
     configFile.getConfigList(TEST_CASES).asScala.map(row => {
       JvmTestCase(
         row.getInt(SERVER_ID),
@@ -65,5 +65,3 @@ trait DebugTestToolConfig extends AppConfig {
     ReportFormatterFactory.findReportBy(reportType)
   }
 }
-
-object DebugTestToolConfig extends DebugTestToolConfig

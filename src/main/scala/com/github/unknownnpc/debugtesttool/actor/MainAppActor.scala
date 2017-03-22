@@ -1,7 +1,6 @@
 package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem}
-import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
 import com.github.unknownnpc.debugtesttool.message._
 
 import scala.concurrent.ExecutionContext
@@ -10,7 +9,6 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
 
   private implicit val dispatcher: ExecutionContext = actorSystem.dispatcher
 
-  private val fullConfig = DebugTestToolConfig
   private var jdiVmServiceActor: ActorRef = _
   private var reportServiceActor: ActorRef = _
 
@@ -47,11 +45,11 @@ class MainAppActor()(implicit actorSystem: ActorSystem) extends Actor with Actor
   }
 
   private def createJdiVmServiceActor() = {
-    context.actorOf(JdiVmServiceActor.props(fullConfig, reportServiceActor), "jdi-vm-service")
+    context.actorOf(JdiVmServiceActor.props(reportServiceActor), "jdi-vm-service")
   }
 
   private def createReportServiceActor() = {
-    context.actorOf(ReportServiceActor.props(self, fullConfig.systemConfig.reportFormatter), "report-service")
+    context.actorOf(ReportServiceActor.props(self), "report-service")
   }
 
 }

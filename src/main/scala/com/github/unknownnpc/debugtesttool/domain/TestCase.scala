@@ -1,17 +1,11 @@
 package com.github.unknownnpc.debugtesttool.domain
 
-sealed trait TestCase {
-
+trait TestCase {
   def targetId: ID
-
   def breakPointLine: BreakpointLine
-
   def breakPointClassName: BreakpointClassName
-
   def breakpointEventTriggerTimeout: BreakpointEventTriggerTimeout
-
   def fieldName: FieldName
-
 }
 
 case class JvmTestCase(targetId: ID,

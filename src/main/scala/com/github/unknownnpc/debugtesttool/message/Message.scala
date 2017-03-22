@@ -13,7 +13,8 @@ object JdiVmServiceStart extends JdiVmServiceCommand
 object JdiVmServiceStop extends JdiVmServiceCommand
 
 trait ReportServiceCommand extends Message
-case class ReportServicePayload(reportRows: List[ReportRow]) extends ReportServiceCommand
+case class ReportServicePayload(executionPayload: ExecutionPayload) extends ReportServiceCommand
+object ReportServicePrint extends ReportServiceCommand
 object ReportServiceStop extends ReportServiceCommand
 
 trait VmConnectionMessage extends Message

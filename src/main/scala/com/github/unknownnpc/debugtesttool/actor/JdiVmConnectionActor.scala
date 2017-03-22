@@ -1,56 +1,55 @@
 package com.github.unknownnpc.debugtesttool.actor
 
 import akka.actor.{Actor, ActorLogging, Props, ReceiveTimeout}
-import com.github.unknownnpc.debugtesttool.config.DebugTestToolConfig
-import com.github.unknownnpc.debugtesttool.connection.JdiVmConnection
+import com.github.unknownnpc.debugtesttool.config.{AppConfig, DebugTestToolConfig}
+import com.github.unknownnpc.debugtesttool.connection.VmConnection
 import com.github.unknownnpc.debugtesttool.domain._
 import com.github.unknownnpc.debugtesttool.message.{JdiVmConnectionFailed, JdiVmConnectionRequest, JdiVmConnectionSuccess}
 
 import scala.concurrent.ExecutionContext
 
-class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: ExecutionContext) extends Actor with ActorLogging {
+class JdiVmConnectionActor(vmConnection: VmConnection)(implicit executionContext: ExecutionContext)
+  extends Actor with ActorLogging {
 
-  private val actorIdleTimeout = DebugTestToolConfig.systemConfig.removeVmConnectionIdleTimeout.duration
-  private val jdiVmConnection = JdiVmConnection(testTarget.address, testTarget.port)
+  self: AppConfig =>
 
   override def preStart() {
-    context.setReceiveTimeout(actorIdleTimeout)
+    context.setReceiveTimeout(systemConfig.removeVmConnectionIdleTimeout.duration)
     log.debug("Pre-start: connect and lock VM")
-    jdiVmConnection.connect()
-    jdiVmConnection.lockVm()
+    vmConnection.connect()
+    vmConnection.lockVm()
   }
 
   @scala.throws[Exception](classOf[Exception])
   override def postStop() {
     log.debug("Post-stop: unlock and disconnect VM")
-    jdiVmConnection.unlockVm()
-    jdiVmConnection.disconnect()
+    vmConnection.unlockVm()
+    vmConnection.disconnect()
   }
 
   override def receive = {
 
-    case request: JdiVmConnectionRequest =>
+    case JdiVmConnectionRequest(testCase)  =>
       val senderActor = sender()
-      val testCase = request.testCase
       syncBreakpointEnableWithVm(testCase.breakPointLine, testCase.breakPointClassName)
-      val optionalValue = jdiVmConnection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
+      val optionalValue = vmConnection.findValue(testCase.fieldName, testCase.breakpointEventTriggerTimeout)
 
       optionalValue match {
 
         case Some(value) =>
           log.info(s"Connection received data from VM: [$value]")
-          senderActor ! JdiVmConnectionSuccess(JvmExecutionPayload(testTarget, testCase, value))
+          senderActor ! JdiVmConnectionSuccess(JvmExecutionPayload(testCase, value))
 
         case None =>
-          val errorMessage: String = s"Unable to find value for next test case: [${request.testCase}]"
+          val errorMessage: String = s"Unable to find value for next test case: [${testCase}]"
           log.error(errorMessage)
           senderActor ! JdiVmConnectionFailed(errorMessage)
       }
       syncBreakpointDisableWithVm()
 
     case ReceiveTimeout =>
-      log.info(s"Connection actor is idling after [$actorIdleTimeout]. Unlock VM. Stopping.")
-      context.stop(self)
+      log.info(s"Connection actor is idling after [$systemConfig.removeVmConnectionIdleTimeout.duration]. Unlock VM. Stopping.")
+      context.stop(context.self)
 
     case _ =>
       val errorMessage = "Unknown incoming message"
@@ -60,19 +59,19 @@ class JdiVmConnectionActor(testTarget: TestTarget)(implicit executionContext: Ex
 
   private def syncBreakpointEnableWithVm(breakPointLine: BreakpointLine, breakpointClassName: BreakpointClassName) {
     log.debug("Replacing `VM lock` with `Breakpoint enable`")
-    jdiVmConnection.enableBreakpoint(breakPointLine, breakpointClassName)
-    jdiVmConnection.unlockVm()
+    vmConnection.enableBreakpoint(breakPointLine, breakpointClassName)
+    vmConnection.unlockVm()
   }
 
   private def syncBreakpointDisableWithVm() = {
     log.debug("Replacing `Breakpoint enable` with `VM lock`")
-    jdiVmConnection.lockVm()
-    jdiVmConnection.disableBreakpoint()
+    vmConnection.lockVm()
+    vmConnection.disableBreakpoint()
   }
 
 }
 
 object JdiVmConnectionActor {
-  def props(testTarget: TestTarget)(implicit executionContext: ExecutionContext) =
-    Props(new JdiVmConnectionActor(testTarget))
+  def props(vmConnection: VmConnection)(implicit executionContext: ExecutionContext) =
+    Props(new JdiVmConnectionActor(vmConnection) with DebugTestToolConfig)
 }
