@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/UnknownNPC/remote-debug-test-tool.svg?branch=development-0.1)](https://travis-ci.org/UnknownNPC/remote-debug-test-tool)
 # Remote Debug Test Tool
 `RDTT` is a simple tool for remote JVM variables search. 
 In comparison with `Oracle JDB` you're able to configure several JVM targets with group of `fields` to search.
