@@ -3,7 +3,7 @@ import Keys._
 
 //General block
 lazy val commonSettings = Seq(
-  name := "remote-debug-test-tool",
+  name := "remote-debug-tool",
   version := "0.1",
   organization := "com.github.unknownnpc",
   scalaVersion := "2.12.1"

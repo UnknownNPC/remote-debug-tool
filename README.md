@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/UnknownNPC/remote-debug-test-tool.svg?branch=development-0.1)](https://travis-ci.org/UnknownNPC/remote-debug-test-tool)
-# Remote Debug Test Tool
-`RDTT` is a simple tool for remote JVM variables search. 
+[![Build Status](https://travis-ci.org/UnknownNPC/remote-debug-tool.svg?branch=development-0.1)](https://travis-ci.org/UnknownNPC/remote-debug-tool)
+# Remote Debug Tool
+`RDT` is a simple tool for remote JVM variables search. 
 In comparison with `Oracle JDB` you're able to configure several JVM targets with group of `fields` to search.
 Current tool was created as help-tool for developer needs in process of distributed systems debug.
 
@@ -13,14 +13,14 @@ Current tool was created as help-tool for developer needs in process of distribu
 ## Using ##
 1. Download the [latest release](https://github.com/UnknownNPC/remote-debug-test-tool/releases) and unpack it.
 
-2. Configure `conf/application.conf` file with target JVMs (`test-targets`) and debug points (`test-cases`). Please note that `test-cases.server-id` params should be equal to `test-targets.id`.
+2. Configure `conf/application.conf` file with target JVMs (`servers`) and debug points (`breakpoints`). Please note that `breakpoint.server-id` params should be equal to `server.id`.
 
 4. Make sure that target application was compiled with `-g` flag. More details [here](http://docs.oracle.com/javase/7/docs/technotes/tools/windows/javac.html)
 
 3. Run `bin/run` for Windows or `bin/run.sh` for Linux
 
 ## Building ##
-Build with `sbt universal:packageBin` and check `project/target/universal` folder for `remote-debug-test-tool-*.zip`
+Build with `sbt universal:packageBin` and check `project/target/universal` folder for `remote-debug-tool-*.zip`
 
 ## Testing ##
 Tests are run with `sbt test`
