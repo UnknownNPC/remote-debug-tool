@@ -3,7 +3,7 @@ import Keys._
 
 //General block
 lazy val commonSettings = Seq(
-  name := "remote-debug-test-tool",
+  name := "remote-debug-tool",
   version := "0.1",
   organization := "com.github.unknownnpc",
   scalaVersion := "2.12.1"
@@ -23,6 +23,8 @@ lazy val projectDependencies = Seq(
   , "com.typesafe.akka" %% "akka-slf4j" % "2.4.17"
   , "ch.qos.logback" % "logback-classic" % "1.1.7"
   , "org.scalatest" %% "scalatest" % "3.0.1" % "test"
+  , "com.typesafe.akka" %% "akka-testkit" % "2.4.17" % "test"
+  , "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % "test"
 )
 
 
