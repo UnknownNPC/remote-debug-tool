@@ -9,33 +9,29 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-object Main {
+object Main extends App {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
   private implicit val actorSystem = ActorSystem("remote-debug-tool")
+  private val log = LoggerFactory.getLogger(this.getClass)
+  private val mainActorRef = createMainAppActorRef()
 
-  def main(args: Array[String]) {
+  mainActorRef ! MainAppActorStart
 
-    val mainActorRef = createMainAppActorRef()
+  Runtime.getRuntime.addShutdownHook(
+    new Thread() {
+      override def run() {
 
-    mainActorRef ! MainAppActorStart
+        log.warn("Trying to terminate correctly")
+        mainActorRef ! MainAppActorStop
 
-    Runtime.getRuntime.addShutdownHook(
-      new Thread() {
-        override def run() {
-
-          log.warn("Trying to terminate correctly")
-          mainActorRef ! MainAppActorStop
-
-          Await.ready(
-            actorSystem.whenTerminated,
-            atMost = 15 seconds
-          )
-          log.warn("Actors successfully stopped")
-        }
+        Await.ready(
+          actorSystem.whenTerminated,
+          atMost = 15 seconds
+        )
+        log.warn("Actors successfully stopped")
       }
-    )
-  }
+    }
+  )
 
   private def createMainAppActorRef() = {
     actorSystem.actorOf(Props(new MainAppActor()), name = "main-app-actor")

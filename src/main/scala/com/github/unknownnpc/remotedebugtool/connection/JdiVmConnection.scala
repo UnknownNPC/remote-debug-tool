@@ -111,11 +111,6 @@ case class JdiVmConnection(address: Address, port: Port) extends VmConnection {
     }.toList
   }
 
-
-  private def findThreadBy(name: String) = {
-    vm.getVm.allThreads().asScala.find(_.name() == name)
-  }
-
   private def findSocketConnector() = {
     val vmm = Bootstrap.virtualMachineManager()
     vmm.allConnectors().asScala.find(_.isInstanceOf[SocketAttachingConnector])

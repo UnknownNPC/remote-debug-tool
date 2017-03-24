@@ -21,8 +21,3 @@ trait VmConnectionMessage extends Message
 case class JdiVmConnectionRequest(breakpoint: Breakpoint) extends VmConnectionMessage
 case class JdiVmConnectionSuccess(breakpointPayload: BreakpointPayload) extends VmConnectionMessage
 case class JdiVmConnectionFailed(reason: CommandFailReason) extends VmConnectionMessage
-
-
-
-
-

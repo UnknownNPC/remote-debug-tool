@@ -12,15 +12,17 @@ class ReportServiceActor(mainAppActorRef: ActorRef) extends Actor with ActorLogg
 
   self: AppConfig =>
 
-  val values = ListBuffer.empty[ReportRow]
+  private val values = ListBuffer.empty[ReportRow]
 
   override def receive = {
 
     case ReportServicePayload(payload) =>
+
       log.debug(s"Print service received incoming payload: [$payload]")
       values += reportRowFrom(payload)
 
     case ReportServicePrint =>
+
       log.debug(s"Received print command")
       log.info(systemConfig.reportFormatter.format(values.toList))
       mainAppActorRef ! MainAppActorStop
