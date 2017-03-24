@@ -70,7 +70,6 @@ class JdiVmConnectionActorTest extends TestKit(ActorSystem("JdiVmConnectionActor
       val className = "A"
       val fieldName = "field"
       val awaitDuration = Timeout.zero.duration
-      val breakpointValue = "value"
       inSequence {
         vmConnection.connect _ expects()
         vmConnection.lockVm _ expects()
