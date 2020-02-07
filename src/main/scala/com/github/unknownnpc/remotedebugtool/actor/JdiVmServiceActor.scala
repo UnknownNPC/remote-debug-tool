@@ -55,7 +55,6 @@ class JdiVmServiceActor(reportActorRef: ActorRef)(implicit val executionContext:
 
   }
 
-
   private def connectionGatewayActorRef(testTargets: List[Target]) = {
     context.actorOf(JdiVmGatewayActor.props(testTargets), "jdi-vm-gateway")
   }

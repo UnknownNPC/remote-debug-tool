@@ -31,7 +31,7 @@ class JdiVmGatewayActor(testTargets: List[Target])(implicit askTimeout: Timeout,
 
   }
 
-  private def targetToConnection(testTarget: Target) = {
+  def targetToConnection(testTarget: Target) = {
     testTarget.id -> context.actorOf(JdiVmConnectionActor.props(JdiVmConnection(testTarget.address, testTarget.port)),
       "jdi-vm-connection-id-" + testTarget.id + "-" + testTarget.address + "-" + testTarget.port)
   }

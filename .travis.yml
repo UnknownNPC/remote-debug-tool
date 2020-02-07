@@ -2,13 +2,16 @@ language: scala
 jdk: oraclejdk8
 
 scala:
-      - 2.12.1
+      - 2.12.3
 
 script:
-  - sbt ++2.12.1 test
+  - sbt ++2.12.1 clean coverage test coverageReport
   - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 
 cache:
   directories:
     - $HOME/.ivy2/cache
     - $HOME/.sbt/boot/
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

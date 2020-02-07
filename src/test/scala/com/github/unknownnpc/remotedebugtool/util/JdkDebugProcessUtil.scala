@@ -10,10 +10,8 @@ import scala.sys.process._
 
 trait JdkDebugProcessUtil {
 
-  def runJavaClassInDebugMode(javaClassName: String,
-                              debugPort: Port,
-                              args: String = "",
-                              javaPath: String = "java"): Process = {
+  def runJavaClassInDebugMode(javaClassName: String, debugPort: Port,
+                              args: String = "", javaPath: String = "java"): Process = {
 
     val log = LoggerFactory.getLogger(this.getClass)
 
@@ -27,7 +25,7 @@ trait JdkDebugProcessUtil {
 
     val processLog = ProcessLogger(message => log.debug(s"External process message: [$message]"))
     Process(
-      tuneCommandForMultiplatform(runJavaClassCommand),
+      tuneCommandForMultiplatforms(runJavaClassCommand),
       new File(absolutePathToResourceFolderBy("/jdi"))
     ).run(processLog)
   }
@@ -37,9 +35,8 @@ trait JdkDebugProcessUtil {
     Paths.get(resource.toURI).toFile.getAbsolutePath
   }
 
-  private def tuneCommandForMultiplatform(command: Seq[String]) = {
-    val os = sys.props("os.name").toLowerCase
-    os match {
+  private def tuneCommandForMultiplatforms(command: Seq[String]) = {
+    sys.props("os.name").toLowerCase match {
       case x if x contains "windows" => Seq("cmd", "/C") ++ command
       case _ => command
     }

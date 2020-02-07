@@ -6,7 +6,9 @@ trait ReportFormatterFactory {
 
   def findReportBy(reportType: ReportType.ReportTypeValue): ReportFormatter = {
     reportType match {
+
       case ReportType.ConsoleReport => ConsoleTableReportFormatter
+
       case _ => throw ConfigException("ReportType wasn't implemented")
     }
   }
