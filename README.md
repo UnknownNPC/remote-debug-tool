@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/UnknownVzzV/remote-debug-tool.svg?branch=master)](https://travis-ci.org/UnknownVzzV/remote-debug-tool)
-[![codecov](https://codecov.io/gh/UnknownVzzV/remote-debug-tool/branch/master/graph/badge.svg)](https://codecov.io/gh/UnknownVzzV/remote-debug-tool)
+[![Build Status](https://travis-ci.org/UnknownVzzV/remote-debug-tool.svg?branch=development-0.2)](https://travis-ci.org/UnknownNPC/remote-debug-tool)
+[![codecov](https://codecov.io/gh/UnknownVzzV/remote-debug-tool/branch/development-0.2/graph/badge.svg)](https://codecov.io/gh/UnknownNPC/remote-debug-tool)
 # Remote Debug Tool
 `RDT` is a simple tool for remote JVM variables search. 
 In comparison with `Oracle JDB` you're able to configure several JVM targets with group of `fields` to search.
@@ -12,7 +12,7 @@ Current tool was created as help-tool for developer needs in process of distribu
   * Configurable breakpoint list for target JVM
  
 ## Using ##
-1. Download the [latest release](https://github.com/UnknownVzzV/remote-debug-test-tool/releases) and unpack it.
+1. Download the [latest release](https://github.com/UnknownNPC/remote-debug-test-tool/releases) and unpack it.
 
 2. Configure `conf/application.conf` file with target JVMs (`servers`) and debug points (`breakpoints`). Please note that `breakpoint.server-id` params should be equal to `server.id`.
 
