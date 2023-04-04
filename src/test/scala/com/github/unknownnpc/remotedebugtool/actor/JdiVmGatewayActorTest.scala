@@ -56,7 +56,7 @@ class JdiVmGatewayActorTest extends TestKit(ActorSystem("JdiVmGatewayActorTest")
       val testProbe = TestProbe()
       testProbe watch actor
       actor ! "ouch"
-      testProbe.expectNoMsg()
+      testProbe.expectNoMessage()
     }
 
   }

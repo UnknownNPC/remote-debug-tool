@@ -1,7 +1,6 @@
 package com.github.unknownnpc.remotedebugtool.actor
 
 import java.util.concurrent.TimeUnit
-
 import akka.actor.{ActorSystem, Props, ReceiveTimeout}
 import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
 import akka.util.Timeout
@@ -111,7 +110,7 @@ class JdiVmConnectionActorTest extends TestKit(ActorSystem("JdiVmConnectionActor
       val testProbe = TestProbe()
       testProbe watch actor
       actor ! "ouch"
-      testProbe.expectNoMsg()
+      testProbe.expectNoMessage()
     }
 
     "release VM on timeout" in {

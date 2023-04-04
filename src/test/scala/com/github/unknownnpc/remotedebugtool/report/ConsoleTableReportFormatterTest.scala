@@ -5,23 +5,29 @@ import org.scalatest.{Matchers, WordSpec}
 
 class ConsoleTableReportFormatterTest extends WordSpec with Matchers {
 
-  private val validTable = "\n\n" +
-    "+--+---------+----+----------+---------------+--------------+" + "\n" +
-    "|ID|  Address|Port|Class name|Breakpoint line|     JVM value|" + "\n" +
-    "| 2|127.0.0.1|8080|          |               |              |" + "\n" +
-    "|  |         |    |ClassNameC|             15|magic result C|" + "\n" +
-    "|  |         |    |ClassNameD|             19|magic result D|" + "\n" +
-    "|  |         |    |ClassNameE|             20|magic result E|" + "\n" +
-    "| 1|localhost|8080|          |               |              |" + "\n" +
-    "|  |         |    |ClassNameA|             13|magic result A|" + "\n" +
-    "|  |         |    |ClassNameB|             14|magic result B|" + "\n" +
-    "+--+---------+----+----------+---------------+--------------+" + "\n\n"
+  private val validTable = """
+                             |
+                             |+--+---------+----+----------+---------------+--------------+
+                             ||ID|  Address|Port|Class name|Breakpoint line|     JVM value|
+                             || 1|localhost|8080|          |               |              |
+                             ||  |         |    |ClassNameA|             13|magic result A|
+                             ||  |         |    |ClassNameB|             14|magic result B|
+                             || 2|127.0.0.1|8080|          |               |              |
+                             ||  |         |    |ClassNameC|             15|magic result C|
+                             ||  |         |    |ClassNameD|             19|magic result D|
+                             ||  |         |    |ClassNameE|             20|magic result E|
+                             |+--+---------+----+----------+---------------+--------------+
+                             |
+                             |""".stripMargin
 
 
-  private val emptyTable = "\n\n" +
-    "+--+-------+----+----------+---------------+---------+" + "\n" +
-    "|ID|Address|Port|Class name|Breakpoint line|JVM value|" + "\n" +
-    "+--+-------+----+----------+---------------+---------+" + "\n\n"
+  private val emptyTable = """
+                             |
+                             |+--+-------+----+----------+---------------+---------+
+                             ||ID|Address|Port|Class name|Breakpoint line|JVM value|
+                             |+--+-------+----+----------+---------------+---------+
+                             |
+                             |""".stripMargin
 
   "ConsoleTableReportFormatter" should {
 

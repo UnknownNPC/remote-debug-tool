@@ -6,7 +6,7 @@ lazy val commonSettings = Seq(
   name := "remote-debug-tool",
   version := "0.1",
   organization := "com.github.unknownnpc",
-  scalaVersion := "2.12.3"
+  scalaVersion := "2.12.17"
 )
 
 lazy val projectConfig = (project in file("."))
@@ -18,13 +18,13 @@ lazy val projectConfig = (project in file("."))
 
 
 lazy val projectDependencies = Seq(
-    "com.typesafe" % "config" % "1.3.1"
-  , "com.typesafe.akka" %% "akka-actor" % "2.6.1"
-  , "com.typesafe.akka" %% "akka-slf4j" % "2.6.1"
-  , "ch.qos.logback" % "logback-classic" % "1.1.7"
-  , "org.scalatest" %% "scalatest" % "3.0.1" % "test"
-  , "com.typesafe.akka" %% "akka-testkit" % "2.6.1" % "test"
-  , "org.scalamock" %% "scalamock-scalatest-support" % "3.5.0" % "test"
+    "com.typesafe" % "config" % "1.4.2"
+  , "com.typesafe.akka" %% "akka-actor" % "2.8.0"
+  , "com.typesafe.akka" %% "akka-slf4j" % "2.8.0"
+  , "ch.qos.logback" % "logback-classic" % "1.4.6"
+  , "org.scalatest" %% "scalatest" % "3.0.6" % Test
+  , "com.typesafe.akka" %% "akka-testkit" % "2.8.0" % Test
+  , "org.scalamock" %% "scalamock-scalatest-support" % "3.6.0" % Test
 )
 
 lazy val projectResolvers = Seq(

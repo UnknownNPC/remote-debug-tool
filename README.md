@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/UnknownVzzV/remote-debug-tool.svg?branch=development-0.2)](https://travis-ci.org/UnknownNPC/remote-debug-tool)
-[![codecov](https://codecov.io/gh/UnknownVzzV/remote-debug-tool/branch/development-0.2/graph/badge.svg)](https://codecov.io/gh/UnknownNPC/remote-debug-tool)
 # Remote Debug Tool
 `RDT` is a simple tool for remote JVM variables search. 
 In comparison with `Oracle JDB` you're able to configure several JVM targets with group of `fields` to search.
@@ -28,7 +26,6 @@ Tests are run with `sbt test`
 
 ## Requirements & Compatibility ##
   * [Oracle JDI](https://docs.oracle.com/javase/7/docs/jdk/api/jpda/jdi/)
-  * sbt `0.13.8`
-  * Java `1.8`
-  * Scala `2.12.1`
-  * Akka actors `2.4.17`
+  * sbt `1.3.13`
+  * Java `1.11`
+  * Scala `2.12.17`
